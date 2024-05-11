@@ -39,7 +39,7 @@ const Header = () => {
     };
 
     fetchSession();
-  }, [emailSession]);
+  }, [emailSession.isLoggedIn]);
 
   // 로그아웃 함수
   const handleLogout = async () => {
@@ -55,7 +55,7 @@ const Header = () => {
   };
 
   return (
-    <header className="z-[99]  bg-white dark:bg-gray-800 w-full  shadow fixed top-0">
+    <header className="z-[99] bg-white dark:bg-gray-800 w-full shadow fixed top-0">
       <nav className="max-w-3xl mx-auto px-2 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center gap-4">
           <div className="flex gap-8">
@@ -74,9 +74,14 @@ const Header = () => {
           </div>
           <div>
             {!username && (
-              <Link className="block px-2 py-4" href="/signin">
-                로그인
-              </Link>
+              <div className="flex gap-4 items-center text-sm">
+                <Link className="block px-2 py-4" href="/signin">
+                  로그인
+                </Link>
+                <Link className="block px-4 py-2 bg-brand-200 text-white rounded-full" href="/signup">
+                  회원가입
+                </Link>
+              </div>
             )}
             {username && (
               <div className="relative" ref={dropDownRef}>
