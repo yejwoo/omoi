@@ -86,15 +86,15 @@ const Header = () => {
             {username && (
               <div className="relative" ref={dropDownRef}>
                 <div
-                  className="flex items-center gap-2 px-2 py-4 cursor-pointer"
+                  className="flex items-center gap-2 px-2 py-4 cursor-pointer text-sm"
                   onClick={toggleDropDown}
                 >
                   {/* <Image className="" src={logo} width={72} height={72} alt="omoi logo" /> */}
-                  <div className="w-8 h-8 bg-slate-300 rounded-full"></div>
+                  <div className="w-6 h-6 bg-slate-300 rounded-full"></div>
                   {username} 님
                 </div>
                 {showDropDown && (
-                  <ul className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 cursor-pointer">
+                  <ul className="origin-top-right absolute right-0 mt-2 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 cursor-pointer">
                     <li className="text-gray-700 text-sm hover:bg-gray-100">
                       <Link className="block px-4 py-2" href="/profile">
                         프로필 수정
