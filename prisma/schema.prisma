@@ -23,11 +23,10 @@ model Post {
   id        Int       @id @default(autoincrement())
   content   String
   image     String
-  latitude  Float
-  longitude Float
+  latitude  Float?
+  longitude Float?
   userId    Int
   comments  Comment[]
-  maps      Map[]
   user      User      @relation(fields: [userId], references: [id])
 }
 
@@ -38,10 +37,4 @@ model Comment {
   postId  Int?
   post    Post?  @relation(fields: [postId], references: [id])
   user    User   @relation(fields: [userId], references: [id])
-}
-
-model Map {
-  id     Int  @id @default(autoincrement())
-  postId Int
-  post   Post @relation(fields: [postId], references: [id])
 }
