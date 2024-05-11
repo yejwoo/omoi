@@ -9,7 +9,6 @@ import createAccount from "./actions";
 
 export default function SignUp() {
   const [state, action] = useFormState(createAccount, null);
-  const { pending } = useFormStatus();
 
   return (
     <div className="flex min-h-screen bg-gray-100 items-center justify-center px-4">

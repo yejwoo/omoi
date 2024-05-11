@@ -18,9 +18,9 @@ async function generateVerificationToken(userId: number) {
 // 유저에게 이메일 전송
 async function sendVerificationEmail(email: string, verificationUrl: string) {
   const transporter = nodemailer.createTransport({
-    service: "naver",
-    host: "smtp.naver.com", // SMTP 서버명
-    port: 465, // SMTP 포트
+    service: process.env.EMAIL_SERVICE,
+    host: process.env.EMAIL_SERVER,
+    port: Number(process.env.EMAIL_PORT),
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD,
@@ -43,6 +43,8 @@ async function sendVerificationEmail(email: string, verificationUrl: string) {
     }
   });
 }
+
+// 유저 폼 데이터 유효성 검사
 const passwordRegex = new RegExp(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).*$/);
 const userSchema = z
   .object({
@@ -51,8 +53,8 @@ const userSchema = z
       .min(2, "2글자 이상 입력해주세요.")
       .max(20, "최대 20자까지 입력 가능합니다.")
       .trim()
-      .toLowerCase(), // 쉼표 추가
-    email: z.string().email("이메일 형식이 아닙니다.").trim().toLowerCase(), // 쉼표 추가
+      .toLowerCase(),
+    email: z.string().email("이메일 형식이 아닙니다.").trim().toLowerCase(),
     password: z
       .string()
       .regex(passwordRegex, "비밀번호는 영문 대소문자, 특수문자를 포함해야 합니다.")
@@ -97,6 +99,7 @@ const userSchema = z
   });
 
 export default async function createAccount(prevState: any, formData: FormData) {
+  // 폼 데이터 파싱
   const data = {
     username: formData.get("username"),
     email: formData.get("email"),
@@ -124,8 +127,10 @@ export default async function createAccount(prevState: any, formData: FormData) 
       throw new Error("이미 사용중인 이메일입니다.");
     }
 
+    // 비밀번호 해싱
     const hashedPassword = await bcrypt.hash(result.data.password, 12);
 
+    // 유저 정보 저장
     const user = await db.user.create({
       data: {
         username: result.data.username,
@@ -141,6 +146,7 @@ export default async function createAccount(prevState: any, formData: FormData) 
       throw new Error("유저 정보 저장 실패");
     }
 
+    // 이메일 인증 토큰 생성
     const token = await generateVerificationToken(user.id);
 
     console.log("Updating user with data:", {
@@ -172,6 +178,6 @@ export default async function createAccount(prevState: any, formData: FormData) 
       `${process.env.DEV_DOMAIN}/api/verify?token=${token}`
     );
 
-    redirect('/signup/verify')
+    redirect("/signup/verify");
   }
 }

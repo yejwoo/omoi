@@ -1,29 +1,34 @@
-// lib/session.ts
+"use server";
 
 import { getIronSession } from "iron-session";
-import { NextApiRequest, NextApiResponse } from "next";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { SessionData, sessionOptions, defaultSession } from "@/lib/sessionSetting";
+import { revalidatePath } from "next/cache";
 
-interface SessionContent {
-  id?: number;
-}
+export async function login(formData: FormData) {
+  const session = await getSession();
 
-export async function createSession(
-  req: NextApiRequest,
-  res: NextApiResponse,
-  userId: number,
-) {
-  const session = await getIronSession<SessionContent>(req, res, {
-    cookieName: "omoi",
-    password: process.env.COOKIE_PASSWORD!,
-  });
-
-  // user 아이디를 세션에 저장
-  session.id = userId;
-
-  // 세션 데이터 저장 후 쿠키를 클라이언트로 보냄
+  session.username = (formData.get("username") as string) ?? "No username";
+  session.isLoggedIn = true;
   await session.save();
-
-  res.redirect("/signin");
+  revalidatePath("/");
 }
 
+export async function logout() {
+  const session = await getSession();
+  session.destroy();
+  redirect("/");
+  // revalidatePath("/") // 무슨 용도?
+}
 
+export async function getSession() {
+  const session = await getIronSession<SessionData>(cookies(), sessionOptions);
+
+  if(!session.isLoggedIn) {
+    session.isLoggedIn = defaultSession.isLoggedIn;
+    session.username = defaultSession.username;
+  }
+
+  return session;
+}

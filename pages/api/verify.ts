@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import db from "@/lib/db";
 import jwt from "jsonwebtoken";
-import { createSession } from "@/lib/session";
 
 export default async function verify(req: NextApiRequest, res: NextApiResponse) {
   // url 쿼리스트링으로 token 받기
@@ -44,9 +43,6 @@ export default async function verify(req: NextApiRequest, res: NextApiResponse) 
     if (!updateEmailVerified) {
       return res.status(400).json({ message: "Failed to update email verification status" });
     }
-
-    // 이메일 인증 후 세션 생성
-    await createSession(req, res, userId);
   } catch (error) {
     console.error("Error during verification:", error);
 

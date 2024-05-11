@@ -3,7 +3,7 @@ import logo from "../../public/logo/logo_title.svg";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-5">
+    <div className="min-h-screen bg-gray-50 py-20 px-5">
       <main className="max-w-lg mx-auto bg-white rounded-xl shadow-lg">
         <header className="p-5">
           <div className="flex items-center space-x-3">
