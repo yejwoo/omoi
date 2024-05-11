@@ -42,7 +42,7 @@ export default function SignUp() {
             />
             <Button content="회원가입" type="primary" />
           </form>
-          <div className="flex text-sm text-gray-500">
+          <div className="flex text-sm mt-4 text-gray-500">
             <span className="mr-1">이미 회원이신가요?</span>
             <Link href="/signin" className="font-semibold">
               로그인
