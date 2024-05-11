@@ -10,7 +10,6 @@ import { defaultSession } from "@/lib/sessionSetting";
 import { redirect, useRouter } from "next/navigation";
 
 const Header = () => {
-  const router = useRouter();
   const { data: session } = useSession();
   const [emailSession, setEmailSession] = useState(defaultSession);
   const [showDropDown, setShowDropDown] = useState(false);
@@ -32,12 +31,15 @@ const Header = () => {
   // 이메일 세션 저장
   useEffect(() => {
     const fetchSession = async () => {
-      const emailSession = await getSession();
-      setEmailSession(emailSession);
+      if (!emailSession.isLoggedIn) {
+        // 로그인 상태가 아니면 새로운 세션 정보를 요청
+        const emailSession = await getSession();
+        setEmailSession(emailSession);
+      }
     };
 
     fetchSession();
-  }, []);
+  }, [emailSession]);
 
   // 로그아웃 함수
   const handleLogout = async () => {
@@ -48,14 +50,9 @@ const Header = () => {
     // 이메일
     else if (emailSession) {
       await logout();
-      await setEmailSession(defaultSession); 
+      await setEmailSession(defaultSession);
     }
-    router.refresh();
   };
-
-  useEffect(() => {
-    console.log("emailSession:", emailSession); // 비동기로 가져온 데이터 로깅
-  }, [emailSession]);
 
   return (
     <header className="z-[99]  bg-white dark:bg-gray-800 w-full  shadow fixed top-0">
@@ -83,7 +80,10 @@ const Header = () => {
             )}
             {username && (
               <div className="relative" ref={dropDownRef}>
-                <div className="flex items-center gap-2 px-2 py-4 cursor-pointer" onClick={toggleDropDown}>
+                <div
+                  className="flex items-center gap-2 px-2 py-4 cursor-pointer"
+                  onClick={toggleDropDown}
+                >
                   {/* <Image className="" src={logo} width={72} height={72} alt="omoi logo" /> */}
                   <div className="w-8 h-8 bg-slate-300 rounded-full"></div>
                   {username} 님

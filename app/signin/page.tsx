@@ -35,7 +35,7 @@ export default function SignIn() {
             placeholder="비밀번호를 입력하세요."
             errors={state?.fieldErrors.password}
           />
-          <Button content="로그인" type="primary" />
+          <Button content="로그인" type="primary"/>
         </form>
         <Button
           content="네이버 로그인"

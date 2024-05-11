@@ -7,15 +7,12 @@ export default function Home() {
       <main className="max-w-lg mx-auto bg-white rounded-xl shadow-lg">
         <header className="p-5">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
-            </div>
+            <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden"></div>
             <span className="font-bold">username</span>
           </div>
         </header>
 
-        <div className="w-full h-96 bg-gray-300">
-
-        </div>
+        <div className="w-full h-96 bg-gray-300"></div>
         <div className="p-5">
           <button className="text-gray-500 hover:text-gray-700">
             <span className="text-xl">♥️</span>

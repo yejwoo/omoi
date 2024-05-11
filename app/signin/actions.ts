@@ -60,16 +60,14 @@ export async function handleSignIn(prevState: any, formData: FormData) {
 
     if (ok) {
       const session = await getSession();
-
       session.id = user!.id;
       session.username = user!.username;
-      if (user && user.email) {
-        session.email = user.email;
+      if(user && user!.email) {
+        session.email = user!.email;
       }
       session.isLoggedIn = true;
       await session.save();
-
-      redirect("/");
+      redirect("/")
     } else {
       return {
         fieldErrors: {
