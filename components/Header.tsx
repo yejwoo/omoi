@@ -67,7 +67,7 @@ const Header = () => {
             <ul className="flex gap-2">
               <li>
                 <Link className="block px-2 py-4" href="/">
-                  피드
+                  <Image src="/icons/home.svg" width={24} height={24} alt="home" />
                 </Link>
               </li>
             </ul>
@@ -78,29 +78,51 @@ const Header = () => {
                 <Link className="block px-2 py-4" href="/signin">
                   로그인
                 </Link>
-                <Link className="block px-4 py-2 bg-brand-200 text-white rounded-full" href="/signup">
+                <Link
+                  className="block px-4 py-2 bg-brand-100 text-white text-sm rounded-full hover:bg-brand-200"
+                  href="/signup"
+                >
                   회원가입
                 </Link>
               </div>
             )}
             {username && (
               <div className="relative" ref={dropDownRef}>
-                <div
-                  className="flex items-center gap-2 px-2 py-4 cursor-pointer text-sm"
-                  onClick={toggleDropDown}
-                >
-                  {/* <Image className="" src={logo} width={72} height={72} alt="omoi logo" /> */}
-                  <div className="w-6 h-6 bg-slate-300 rounded-full"></div>
-                  {username} 님
+                <div className="flex items-center gap-2">
+                  <Link
+                    className="inline-block px-4 py-2 bg-brand-100 text-white text-sm rounded-full hover:bg-brand-200"
+                    href="/write"
+                  >
+                    글쓰기
+                  </Link>
+                  <div
+                    className="flex items-center gap-2 px-2 py-4 cursor-pointer text-sm"
+                    onClick={toggleDropDown}
+                  >
+                    <div className="inline-block w-8 h-8 bg-slate-300 rounded-full"></div>
+                  </div>
                 </div>
                 {showDropDown && (
-                  <ul className="origin-top-right absolute right-0 mt-2 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 cursor-pointer">
+                  <ul className="origin-top-right absolute right-0 mt-2 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 cursor-pointer">
+                    <li className="text-gray-700 text-base rounded-t-md">
+                      <Link className="block px-4 py-2" href="/my-omoi">
+                        <span className="font-bold">{username}</span> 님
+                      </Link>
+                    </li>
+                    <li className="text-gray-700 text-sm hover:bg-gray-100">
+                      <Link className="block px-4 py-2" href="/my-omoi">
+                        내 피드
+                      </Link>
+                    </li>
                     <li className="text-gray-700 text-sm hover:bg-gray-100">
                       <Link className="block px-4 py-2" href="/profile">
                         프로필 수정
                       </Link>
                     </li>
-                    <li className="text-gray-700 text-sm hover:bg-gray-100" onClick={handleLogout}>
+                    <li
+                      className="text-gray-700 text-sm hover:bg-gray-100 rounded-b-md"
+                      onClick={handleLogout}
+                    >
                       <Link className="block px-4 py-2" href="/">
                         로그아웃
                       </Link>
