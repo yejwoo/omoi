@@ -6,7 +6,7 @@ CREATE TABLE "User" (
     "email" TEXT,
     "emailToken" TEXT,
     "emailTokenExpiration" TIMESTAMP(3),
-    "emailVerified" BOOLEAN DEFAULT false,
+    "emailVerified" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -16,9 +16,17 @@ CREATE TABLE "Post" (
     "id" SERIAL NOT NULL,
     "content" TEXT NOT NULL,
     "image" TEXT NOT NULL,
-    "latitude" DOUBLE PRECISION NOT NULL,
-    "longitude" DOUBLE PRECISION NOT NULL,
+    "region" TEXT NOT NULL,
+    "latitude" DOUBLE PRECISION,
+    "longitude" DOUBLE PRECISION,
+    "date1" TIMESTAMP(3) NOT NULL,
+    "date2" TIMESTAMP(3) NOT NULL,
+    "tag" TEXT,
     "userId" INTEGER NOT NULL,
+    "isPublic" BOOLEAN NOT NULL DEFAULT true,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(0) NOT NULL DEFAULT NOW(),
+    "updatedAt" TIMESTAMP(0) NOT NULL DEFAULT NOW(),
 
     CONSTRAINT "Post_pkey" PRIMARY KEY ("id")
 );
@@ -31,14 +39,6 @@ CREATE TABLE "Comment" (
     "postId" INTEGER,
 
     CONSTRAINT "Comment_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Map" (
-    "id" SERIAL NOT NULL,
-    "postId" INTEGER NOT NULL,
-
-    CONSTRAINT "Map_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -55,6 +55,3 @@ ALTER TABLE "Comment" ADD CONSTRAINT "Comment_postId_fkey" FOREIGN KEY ("postId"
 
 -- AddForeignKey
 ALTER TABLE "Comment" ADD CONSTRAINT "Comment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Map" ADD CONSTRAINT "Map_postId_fkey" FOREIGN KEY ("postId") REFERENCES "Post"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
