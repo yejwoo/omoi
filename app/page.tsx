@@ -1,5 +1,6 @@
 import Image from "next/image";
 import logo from "../../public/logo/logo_title.svg";
+import WriteModal from "@/components/WriteModal";
 
 export default function Home() {
   return (

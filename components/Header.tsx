@@ -8,14 +8,36 @@ import { signOut, useSession } from "next-auth/react";
 import { getSession, logout } from "@/lib/session";
 import { defaultSession } from "@/lib/sessionSetting";
 import { redirect, useRouter } from "next/navigation";
+import WriteModal from "@/components/WriteModal";
 
 const Header = () => {
   const { data: session } = useSession();
   const [emailSession, setEmailSession] = useState(defaultSession);
   const [showDropDown, setShowDropDown] = useState(false);
+  const [isModalOpen, setModalOpen] = useState(false);
   const toggleDropDown = () => setShowDropDown(!showDropDown);
+  const handleOpenModal = () => setModalOpen(true);
+  const handleCloseModal = () => setModalOpen(false);
   const dropDownRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   const username = session ? session.user?.name : emailSession.username;
+
+  // 모달 바깥 클릭시 안 보이기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setModalOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [modalRef]);
+
+  const handleSubmit = (event: MouseEvent) => {
+    event.preventDefault();
+    console.log("Form submitted");
+    handleCloseModal();
+  };
 
   // 드롭다운 바깥 클릭시 안 보이기
   useEffect(() => {
@@ -89,12 +111,12 @@ const Header = () => {
             {username && (
               <div className="relative" ref={dropDownRef}>
                 <div className="flex items-center gap-2">
-                  <Link
+                  <button
                     className="inline-block px-4 py-2 bg-brand-100 text-white text-sm rounded-full hover:bg-brand-200"
-                    href="/write"
+                    onClick={handleOpenModal}
                   >
                     글쓰기
-                  </Link>
+                  </button>
                   <div
                     className="flex items-center gap-2 px-2 py-4 cursor-pointer text-sm"
                     onClick={toggleDropDown}
@@ -134,6 +156,7 @@ const Header = () => {
           </div>
         </div>
       </nav>
+      <WriteModal isOpen={isModalOpen} onClose={handleCloseModal} />
     </header>
   );
 };
