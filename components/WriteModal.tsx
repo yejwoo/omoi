@@ -4,30 +4,33 @@ import Button from "@/components/Button";
 import { useEffect, useState } from "react";
 import Dropzone from "@/components/Dropzone";
 import Image from "next/image";
-import { useFormState } from "react-dom";
-import createPost from "@/app/postAction";
 import Input from "./Input";
 import { getSession, useSession } from "next-auth/react";
-import { defaultSession } from "@/lib/sessionSetting";
+import { FileWithPath } from "react-dropzone";
+import createPost from "@/app/postAction";
+import { useFormState } from "react-dom";
 
 interface modalState {
   isOpen: boolean;
   onClose: () => void;
 }
 
+interface FileWithPreview extends FileWithPath {
+  preview: string;
+}
+
 export default function PostForm({ isOpen, onClose }: modalState) {
   const { data: session } = useSession();
-  const [state, action] = useFormState(createPost, null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
+  const [state, action] = useFormState(createPost, null);
 
   useEffect(() => {
     if (session) {
-      // 네이버 로그인 사용자의 ID 가져오기
       if (session.user && session.user?.name) {
         setUserId(session.user?.name);
       }
     } else {
-      // 이메일 세션의 ID 가져오기
       const fetchSession = async () => {
         const emailSession = await getSession();
         if (emailSession && emailSession.user && emailSession.user.email) {
@@ -39,6 +42,16 @@ export default function PostForm({ isOpen, onClose }: modalState) {
   }, [session]);
 
 
+  const handleFilesAdded = (files: FileWithPreview[]) => {
+    setUploadedFiles(files);
+    const hiddenInput = document.getElementById("hiddenFiles") as HTMLInputElement;
+    hiddenInput.value = JSON.stringify(files.map(file => ({
+      name: file.name,
+      type: file.type,
+      content: file.preview,
+    })));
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -47,6 +60,7 @@ export default function PostForm({ isOpen, onClose }: modalState) {
         className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 flex flex-col w-full h-full sm:w-[640px] sm:h-auto"
         action={action}
       >
+        <input id="hiddenFiles" name="files" type="hidden" />
         <div className="mb-4">
           <Image
             className="flex p-1 items-end cursor-pointer hover:rounded-full hover:bg-gray-200 hover:transition ml-auto"
@@ -56,13 +70,13 @@ export default function PostForm({ isOpen, onClose }: modalState) {
             alt="close"
             onClick={onClose}
           />
-          <Dropzone />
+          <Dropzone onFilesAdded={handleFilesAdded} />
         </div>
         <div className="mb-4">
           <textarea
             id="content"
             name="content"
-            className="bg-gray-50 resize-none appearance-none rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-56 rounded-md"
+            className="bg-gray-50 resize-none appearance-none w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-56 rounded-md"
             placeholder="내용을 입력하세요."
           />
         </div>
@@ -89,15 +103,10 @@ export default function PostForm({ isOpen, onClose }: modalState) {
           </select>
         </div>
         <div className="flex gap-2">
-          <Input type="date" name="date1" label="날짜 1"/>
-          <Input type="date" name="date2" label="날짜 2"/>
+          <Input type="date" name="date1" label="날짜 1" />
+          <Input type="date" name="date2" label="날짜 2" />
         </div>
-        <Input
-          type="text"
-          name="tag"
-          label="태그"
-          placeholder="태그를 입력하세요."
-        />
+        <Input type="text" name="tag" label="태그" placeholder="태그를 입력하세요." />
         {userId && (
           <div className="hidden">
             <Input type="hidden" name="userId" label="유저 아이디" value={userId} />

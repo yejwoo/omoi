@@ -1,13 +1,16 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDropzone, FileWithPath } from "react-dropzone";
 import Image from "next/image";
-import { S3, PutObjectCommand, PutObjectCommandInput } from "@aws-sdk/client-s3";
 
 interface FileWithPreview extends FileWithPath {
   preview: string;
 }
 
-const Dropzone: React.FC = (props: any) => {
+interface DropzoneProps {
+  onFilesAdded: (files: FileWithPreview[]) => void;
+}
+
+const Dropzone: React.FC<DropzoneProps> = ({ onFilesAdded }) => {
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [modalImage, setModalImage] = useState<string | null>(null);
 
@@ -18,7 +21,8 @@ const Dropzone: React.FC = (props: any) => {
       })
     );
     setFiles((prevFiles) => [...prevFiles, ...newFiles]);
-  }, []);
+    onFilesAdded(newFiles);
+  }, [onFilesAdded]);
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -32,43 +36,12 @@ const Dropzone: React.FC = (props: any) => {
     maxSize: 10 * 1024 * 1024, // 10 MB
   });
 
-  const uploadFiles = async () => {
-    const s3 = new S3({
-      region: process.env.NEXT_PUBLIC_AWS_REGION,
-      credentials: {
-        accessKeyId: process.env.NEXT_PUBLIC_AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.NEXT_PUBLIC_AWS_SECRET_ACCESS_KEY!,
-      },
-    });
-
-    const uploadPromises = files.map(async (file) => {
-      const date = new Date();
-      const dateString = date.toISOString().slice(0, 10).replace(/-/g, "");
-
-      const params: PutObjectCommandInput = {
-        Bucket: process.env.NEXT_PUBLIC_AWS_BUCKET_NAME!,
-        Key: `${dateString}/${Date.now()}_${file.name}`,
-        Body: file,
-        ContentType: file.type,
-      };
-
-      const command = new PutObjectCommand(params);
-      return s3.send(command);
-    });
-
-    try {
-      const results = await Promise.all(uploadPromises);
-      console.log("업로드 성공:", results);
-    } catch (error) {
-      console.error("업로드 오류:", error);
-    }
-  };
-
   const removeFile = (file: FileWithPreview) => {
     setFiles((prevFiles) => prevFiles.filter((f) => f !== file));
     URL.revokeObjectURL(file.preview);
   };
 
+  // 프리뷰 이미지 좌우 이동
   const scrollLeft = () => {
     const container = document.getElementById("thumbnail-container");
     container?.scrollBy({ left: -200, behavior: "smooth" });
@@ -78,6 +51,10 @@ const Dropzone: React.FC = (props: any) => {
     const container = document.getElementById("thumbnail-container");
     container?.scrollBy({ left: 200, behavior: "smooth" });
   };
+
+  useEffect(() => {
+    console.log("preview images: ", files);
+  }, [files]);
 
   return (
     <section className="container">
@@ -153,11 +130,6 @@ const Dropzone: React.FC = (props: any) => {
           </div>
         </div>
       )}
-      {/* {files.length > 0 && (
-        <button onClick={uploadFiles} className="mt-4 p-2 bg-blue-500 text-white rounded">
-          Upload Files
-        </button>
-      )} */}
     </section>
   );
 };

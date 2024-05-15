@@ -26,8 +26,8 @@ model Post {
   region    String
   latitude  Float?
   longitude Float?
-  date1     DateTime  @default(now()) @db.Date
-  date2     DateTime  @default(now()) @db.Date
+  date1     DateTime? 
+  date2     DateTime? 
   tag       String?
   userId    Int
   comments  Comment[]
