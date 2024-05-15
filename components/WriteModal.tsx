@@ -1,21 +1,52 @@
 "use client";
 
 import Button from "@/components/Button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Dropzone from "@/components/Dropzone";
 import Image from "next/image";
+import { useFormState } from "react-dom";
+import createPost from "@/app/postAction";
+import Input from "./Input";
+import { getSession, useSession } from "next-auth/react";
+import { defaultSession } from "@/lib/sessionSetting";
 
 interface modalState {
-  isOpen: any;
-  onClose: any;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export default function PostForm({ isOpen, onClose }: modalState) {
+  const { data: session } = useSession();
+  const [state, action] = useFormState(createPost, null);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (session) {
+      // 네이버 로그인 사용자의 ID 가져오기
+      if (session.user && session.user?.name) {
+        setUserId(session.user?.name);
+      }
+    } else {
+      // 이메일 세션의 ID 가져오기
+      const fetchSession = async () => {
+        const emailSession = await getSession();
+        if (emailSession && emailSession.user && emailSession.user.email) {
+          setUserId(emailSession.user.email);
+        }
+      };
+      fetchSession();
+    }
+  }, [session]);
+
+
   if (!isOpen) return null;
 
   return (
     <main className="fixed flex justify-center items-center inset-0 bg-black bg-opacity-50">
-      <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 flex flex-col w-full h-full sm:w-[640px] sm:h-auto">
+      <form
+        className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 flex flex-col w-full h-full sm:w-[640px] sm:h-auto"
+        action={action}
+      >
         <div className="mb-4">
           <Image
             className="flex p-1 items-end cursor-pointer hover:rounded-full hover:bg-gray-200 hover:transition ml-auto"
@@ -35,7 +66,6 @@ export default function PostForm({ isOpen, onClose }: modalState) {
             placeholder="내용을 입력하세요."
           />
         </div>
-
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="region">
             지역
@@ -59,41 +89,21 @@ export default function PostForm({ isOpen, onClose }: modalState) {
           </select>
         </div>
         <div className="flex gap-2">
-          <div className="w-1/2 mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="date1">
-              날짜 1
-            </label>
-            <input
-              type="date"
-              id="date1"
-              name="date1"
-              className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            />
-          </div>
-          <div className="w-1/2 mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="date2">
-              날짜 2
-            </label>
-            <input
-              type="date"
-              id="date2"
-              name="date2"
-              className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            />
-          </div>
+          <Input type="date" name="date1" label="날짜 1"/>
+          <Input type="date" name="date2" label="날짜 2"/>
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="tag">
-            태그
-          </label>
-          <input
-            type="text"
-            id="tag"
-            name="tag"
-            className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          />
-        </div>
-        <div className="flex items-center justify-between">
+        <Input
+          type="text"
+          name="tag"
+          label="태그"
+          placeholder="태그를 입력하세요."
+        />
+        {userId && (
+          <div className="hidden">
+            <Input type="hidden" name="userId" label="유저 아이디" value={userId} />
+          </div>
+        )}
+        <div className="flex items-center justify-between mt-4">
           <Button content="공유" type="primary" />
         </div>
       </form>
