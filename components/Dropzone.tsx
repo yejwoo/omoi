@@ -81,10 +81,13 @@ const Dropzone: React.FC = (props: any) => {
 
   return (
     <section className="container">
-      <div {...getRootProps({ className: "dropzone" })}>
-        <input {...getInputProps()} />
-        <div className="w-32 h-48 p-8 flex flex-col gap-2 justify-center items-center bg-gray-100 rounded-lg hover:bg-gray-200 hover:transition-all cursor-pointer">
-          <Image src="/icons/add-to-photo.svg" width={24} height={24} alt="add photo" />
+      <div className="flex items-center gap-2">
+        <p className="text-gray-700 text-sm font-bold">이미지 추가</p>
+        <div {...getRootProps({ className: "dropzone" })}>
+          <input {...getInputProps()} />
+          <div className="w-8 h-8 flex flex-col gap-2 justify-center items-center bg-gray-200 rounded-lg hover:bg-gray-300 hover:transition-all cursor-pointer">
+            <Image src="/icons/add.svg" width={16} height={16} alt="add photo" />
+          </div>
         </div>
       </div>
       {files.length > 0 && (
@@ -111,10 +114,11 @@ const Dropzone: React.FC = (props: any) => {
                 />
                 <div className="w-32 h-48 relative">
                   <Image
+                    className="hover:cursor-pointer"
                     src={file.preview}
                     alt="preview"
-                    layout="fill"
-                    objectFit="cover"
+                    fill
+                    style={{ objectFit: "cover" }}
                     onClick={() => setModalImage(file.preview)}
                   />
                 </div>
@@ -149,11 +153,11 @@ const Dropzone: React.FC = (props: any) => {
           </div>
         </div>
       )}
-      {files.length > 0 && (
+      {/* {files.length > 0 && (
         <button onClick={uploadFiles} className="mt-4 p-2 bg-blue-500 text-white rounded">
           Upload Files
         </button>
-      )}
+      )} */}
     </section>
   );
 };
