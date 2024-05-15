@@ -1,11 +1,16 @@
 "use client";
 
 import Button from "@/components/Button";
-import {  useState } from "react";
+import { useState } from "react";
 import Dropzone from "@/components/Dropzone";
 import Image from "next/image";
 
-export default function PostForm({ isOpen, onClose }) {
+interface modalState {
+  isOpen: any;
+  onClose: any;
+}
+
+export default function PostForm({ isOpen, onClose }: modalState) {
   if (!isOpen) return null;
 
   return (
@@ -13,7 +18,7 @@ export default function PostForm({ isOpen, onClose }) {
       <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 flex flex-col w-full h-full sm:w-[640px] sm:h-auto">
         <div className="mb-4">
           <Image
-            className="flex p-1 items-end cursor-pointer hover:rounded-full hover:bg-slate-200 hover:transition"
+            className="flex p-1 items-end cursor-pointer hover:rounded-full hover:bg-gray-200 hover:transition ml-auto"
             src="/icons/close.svg"
             width={32}
             height={32}
