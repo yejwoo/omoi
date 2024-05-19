@@ -22,20 +22,28 @@ model User {
 model Post {
   id        Int       @id @default(autoincrement())
   content   String
-  image     String
+  images    Image[]
   region    String
   latitude  Float?
   longitude Float?
   date1     DateTime? 
   date2     DateTime? 
-  tag       String?
+  tags1     String?
+  tags2     String?
   userId    Int
   comments  Comment[]
   user      User      @relation(fields: [userId], references: [id])
-  isPublic  Boolean   @default(true)
+  postStatus String?  @default("public")
   isDeleted Boolean   @default(false)
   createdAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
   updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
+}
+
+model Image {
+  id     Int    @id @default(autoincrement())
+  url    String
+  postId Int
+  post   Post   @relation(fields: [postId], references: [id])
 }
 
 model Comment {
