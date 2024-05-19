@@ -5,11 +5,11 @@ import { useEffect, useState, useRef } from "react";
 import Dropzone from "@/components/Dropzone";
 import Image from "next/image";
 import Input from "./Input";
-import { getSession, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { FileWithPath } from "react-dropzone";
-import { useFormState } from "react-dom";
 import uploadFiles from "@/lib/UploadFiles";
 import { tags1, tags2 } from "@/app/data/tags";
+import { getSession } from "@/lib/session";
 
 interface modalState {
   isOpen: boolean;
@@ -31,7 +31,7 @@ const enableScroll = () => {
 
 export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
   const { data: session } = useSession();
-  const [userId, setUserId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [selectedTag1, setSelectedTag1] = useState<string>("");
   const [selectedTag2, setSelectedTag2] = useState<string[]>([]);
@@ -42,23 +42,23 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
   }
 
   useEffect(() => {
-    if (session) {
-      if (session.user && session.user?.name) {
-        setUserId(session.user?.name);
-      }
-    } else {
-      const fetchSession = async () => {
+    const fetchSession = async () => {
+      if (session) {
+        // @TODO: 네이버 이메일 유저 정보 및 아이디 저장
+        // if (session.user && session.user?.name) {
+          // setUserId(session.user?.name);
+        // }
+      } else {
         const emailSession = await getSession();
-        if (emailSession && emailSession.user && emailSession.user.email) {
-          setUserId(emailSession.user.email);
+        // console.log(emailSession)
+        if (emailSession && emailSession.id) {
+          setUserId(emailSession.id || 0);
         }
-      };
-      fetchSession();
-    }
-  }, [session]);
+      }
+    };
 
-  useEffect(() => {
     if (isOpen) {
+      fetchSession();
       disableScroll();
     } else {
       enableScroll();
@@ -80,7 +80,7 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
       enableScroll();
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, session, onClose]);
 
   const handleFilesAdded = async (files: FileWithPreview[]) => {
     const blobs = await Promise.all(files.map(fileToBlob));

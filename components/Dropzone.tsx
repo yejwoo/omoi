@@ -52,9 +52,9 @@ const Dropzone: React.FC<DropzoneProps> = ({ onFilesAdded }) => {
     container?.scrollBy({ left: 200, behavior: "smooth" });
   };
 
-  useEffect(() => {
-    console.log("preview images: ", files);
-  }, [files]);
+  // useEffect(() => {
+  //   console.log("preview images: ", files);
+  // }, [files]);
 
   return (
     <section className="container">

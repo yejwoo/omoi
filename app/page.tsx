@@ -28,8 +28,8 @@ export default function Home() {
   };
 
   const getTag2Names = (values) => {
-    return values.split(',').map(value => {
-      const tag = tags2.find(tag => tag.value === value);
+    return values.split(",").map((value) => {
+      const tag = tags2.find((tag) => tag.value === value);
       return tag ? tag.name : value;
     });
   };
@@ -41,7 +41,7 @@ export default function Home() {
         const data = await response.json();
         setPosts(data);
         setIsLoading(false);
-        console.log("data", data)
+        // console.log("data", data)
       } catch (error) {
         console.error("Failed to fetch posts:", error);
         setError("Failed to fetch posts.");
@@ -78,19 +78,26 @@ export default function Home() {
                 <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden"></div>
                 <span className="font-bold">{post.user.username}</span>
               </div>
-              <div className="flex gap-1 mt-3">
-                <span className="py-1 px-2 rounded-full text-sm font-semibold cursor-pointer text-gray-500 bg-gray-100">
-                  {getTag1Name(post.tags1)}
-                </span>
-                {post.tags2 && getTag2Names(post.tags2).map((tag: string, index: number) => (
-                  <span
-                    key={index}
-                    className="py-1 px-2 rounded-full text-sm font-semibold cursor-pointer text-gray-500 bg-gray-100"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              {(post.tags1 || post.tags2) && (
+                <div className="flex gap-1 mt-3">
+                  {post.tags1 && (
+                    <span className="py-1 px-2 rounded-full text-sm font-semibold cursor-pointer text-gray-500 bg-gray-100">
+                      {getTag1Name(post.tags1)}
+                    </span>
+                  )}
+                  {post.tags2 &&
+                    getTag2Names(post.tags2).map(
+                      (tag: string, index: number) => (
+                        <span
+                          key={index}
+                          className="py-1 px-2 rounded-full text-sm font-semibold cursor-pointer text-gray-500 bg-gray-100"
+                        >
+                          {tag}
+                        </span>
+                      )
+                    )}
+                </div>
+              )}
             </header>
 
             {post.images.length > 0 && <ImageCarousel images={post.images} />}

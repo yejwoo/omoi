@@ -28,8 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       date2: formData.date2,
       tags1: formData.tags1,
       tags2: formData.tags2,
-      // userId: Number(formData.userId), // Convert userId to a number
-      userId: 1,
+      userId: Number(formData.userId),
       images: JSON.parse(formData.files || "[]"), // This should be an array of image URLs
       postStatus: formData.postStatus
     };
