@@ -11,6 +11,7 @@ import createPost from "@/app/postAction";
 import { useFormState } from "react-dom";
 import uploadFiles from "@/lib/UploadFiles";
 import { redirect } from "next/navigation";
+import { tags1, tags2 } from "@/app/data/tags";
 
 interface modalState {
   isOpen: boolean;
@@ -26,15 +27,13 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
   const { data: session } = useSession();
   const [userId, setUserId] = useState<string | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
-  // const [state, action] = useFormState(createPost, null);
+  const [selectedTag1, setSelectedTag1] = useState<string>("");
+  const [selectedTag2, setSelectedTag2] = useState<string[]>([]);
 
-  // 파일 블롭 형태로 수정
   function fileToBlob(file: FileWithPreview): Promise<Blob> {
     return fetch(file.preview).then((res) => res.blob());
   }
 
-  // @TODO: 수정 필요
-  // 유저 아이디 저장
   useEffect(() => {
     if (session) {
       if (session.user && session.user?.name) {
@@ -51,7 +50,6 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
     }
   }, [session]);
 
-  // 폼에 파일 추가
   const handleFilesAdded = async (files: FileWithPreview[]) => {
     const blobs = await Promise.all(files.map(fileToBlob));
     const urls = await uploadFiles(
@@ -67,16 +65,29 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
     hiddenInput.value = JSON.stringify(urls);
   };
 
-  // 폼 제출시 api 호출 
+  const handleTagClick = (tag: string) => {
+    setSelectedTag2((prevSelectedTags) => {
+      if (prevSelectedTags.includes(tag)) {
+        return prevSelectedTags.filter((t) => t !== tag);
+      } else if (prevSelectedTags.length < 3) {
+        return [...prevSelectedTags, tag];
+      } else {
+        return [...prevSelectedTags.slice(0, -1), tag];
+      }
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget as HTMLFormElement);
+    formData.set("tags1", selectedTag1);
+    formData.set("tags2", selectedTag2.join(","));
     const response = await fetch("/api/posts", {
       method: "POST",
       body: JSON.stringify(Object.fromEntries(formData)),
       headers: {
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     });
     const result = await response.json();
     if (result.success) {
@@ -90,12 +101,11 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
   if (!isOpen) return null;
 
   return (
-    <main className="fixed flex justify-center items-center inset-0 bg-black bg-opacity-50">
-      <form
-        className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 flex flex-col w-full h-full sm:w-[640px] sm:h-auto"
-        // action={action}
-        onSubmit={handleSubmit}
-      >
+    <main className="fixed flex justify-center items-center inset-0 bg-black bg-opacity-50 overflow-auto h-full">
+    <form
+      className="bg-white shadow-md px-8 pt-6 pb-8 flex flex-col w-full max-h-screen overflow-y-auto sm:w-[640px] sm:h-auto sm:rounded sm:h-[902px]"
+      onSubmit={handleSubmit}
+    >
         <input id="hiddenFiles" name="files" type="hidden" />
         <div className="mb-4">
           <Image
@@ -116,6 +126,7 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
             placeholder="내용을 입력하세요."
           />
         </div>
+        {/* 지역 */}
         <div className="mb-4">
           <label
             className="block text-gray-700 text-sm font-bold mb-2"
@@ -145,12 +156,91 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
           <Input type="date" name="date1" label="날짜 1" />
           <Input type="date" name="date2" label="날짜 2" />
         </div>
-        <Input
-          type="text"
-          name="tag"
-          label="태그"
-          placeholder="태그를 입력하세요."
-        />
+        {/* 태그 */}
+        <div className="mb-4">
+          <label
+            className="block text-gray-700 text-sm font-bold mb-2"
+            htmlFor="tags1"
+          >
+            누구와
+          </label>
+          <div id="tags1" className="flex flex-wrap gap-2">
+            {tags1.map((tag, index) => (
+              <button
+                type="button"
+                key={index}
+                className={`py-2 px-4 rounded-full font-medium cursor-pointer transition ${
+                  selectedTag1 === tag.value
+                    ? "bg-brand-200 text-white border border-transparent"
+                    : "bg-white text-gray-700 border border-gray-200"
+                }`}
+                onClick={() =>
+                  setSelectedTag1(selectedTag1 === tag.value ? "" : tag.value)
+                }
+              >
+                {tag.name}
+              </button>
+            ))}
+          </div>
+          <select id="tags1" name="tags1" className="hidden">
+            <option value="">태그 선택</option>
+            {tags1.map((tag) => (
+              <option key={tag.name} value={tag.value}>
+                {tag.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="mb-4">
+          <label
+            className="block text-gray-700 text-sm font-bold mb-2"
+            htmlFor="tags2"
+          >
+            테마 (최대 3개)
+          </label>
+          <div id="tags2" className="flex flex-wrap gap-2">
+            {tags2.map((tag, index) => (
+              <button
+                type="button"
+                key={index}
+                className={`py-2 px-4 rounded-full font-medium cursor-pointer transition ${
+                  selectedTag2.includes(tag.value)
+                    ? "bg-brand-200 text-white border border-transparent"
+                    : "bg-white text-gray-700 border border-gray-200"
+                }`}
+                onClick={() => handleTagClick(tag.value)}
+              >
+                {tag.name}
+              </button>
+            ))}
+          </div>
+          <select id="tags2" name="tags2" className="hidden">
+            <option value="">태그 선택</option>
+            {tags2.map((tag) => (
+              <option key={tag.name} value={tag.value}>
+                {tag.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="mb-4">
+          <label
+            className="block text-gray-700 text-sm font-bold mb-2"
+            htmlFor="postStatus"
+          >
+            공개 범위
+          </label>
+          <select
+            id="postStatus"
+            name="postStatus"
+            className="block appearance-none w-full bg-white border border-gray-200 hover:border-gray-500 px-4 py-2 pr-8 rounded leading-tight focus:outline-none focus:shadow-outline"
+          >
+            <option value="public" defaultChecked>
+              공개
+            </option>
+            <option value="private">비공개</option>
+          </select>
+        </div>
         {userId && (
           <div className="hidden">
             <Input
