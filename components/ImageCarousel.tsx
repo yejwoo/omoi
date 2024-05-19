@@ -28,8 +28,11 @@ const ImageCarousel = ({ images }: ImageCarouselProps) => {
               <Image
                 src={image.url}
                 alt={`Post image ${index + 1}`}
-                layout="fill"
-                objectFit="contain"
+                fill
+                // priority={true}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                style={{ objectFit: "contain" }}
+                loading="lazy"
               />
             </div>
           ))}

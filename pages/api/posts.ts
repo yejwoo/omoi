@@ -66,6 +66,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   // 포스트 조회
   else if (req.method === 'GET') {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 3; // Default limit to 3
+    const skip = (page - 1) * limit;
+
     try {
       const posts = await db.post.findMany({
         include: {
@@ -76,9 +80,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         orderBy: {
           createdAt: 'desc',
         },
+        skip,
+        take: limit,
       });
 
-      return res.status(200).json(posts);
+      const totalPosts = await db.post.count();
+      const hasMore = totalPosts > page * limit;
+
+      return res.status(200).json({
+        posts,
+        hasMore,
+      });
     } catch (error) {
       console.error('Failed to fetch posts:', error);
       return res.status(500).json({ message: 'Internal Server Error' });
