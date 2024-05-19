@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { getSession, logout } from "@/lib/session";
 import { defaultSession } from "@/lib/sessionSetting";
-import { redirect, useRouter } from "next/navigation";
+import { RedirectType, redirect, useRouter } from "next/navigation";
 import WriteModal from "@/components/WriteModal";
 
 const Header = () => {
@@ -16,7 +16,10 @@ const Header = () => {
   const [showDropDown, setShowDropDown] = useState(false);
   const [isModalOpen, setModalOpen] = useState(false);
   const toggleDropDown = () => setShowDropDown(!showDropDown);
-  const handleOpenModal = () => setModalOpen(true);
+  const handleOpenModal = () => {
+    setModalOpen(true);
+    redirect("/");
+  }
   const handleCloseModal = () => setModalOpen(false);
   const dropDownRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);

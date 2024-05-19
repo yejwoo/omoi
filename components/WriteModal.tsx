@@ -9,6 +9,7 @@ import { getSession, useSession } from "next-auth/react";
 import { FileWithPath } from "react-dropzone";
 import createPost from "@/app/postAction";
 import { useFormState } from "react-dom";
+import uploadFiles from "@/lib/UploadFiles";
 
 interface modalState {
   isOpen: boolean;
@@ -24,6 +25,10 @@ export default function PostForm({ isOpen, onClose }: modalState) {
   const [userId, setUserId] = useState<string | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [state, action] = useFormState(createPost, null);
+
+  function fileToBlob(file: FileWithPreview): Promise<Blob> {
+    return fetch(file.preview).then((res) => res.blob());
+  }
 
   useEffect(() => {
     if (session) {
@@ -41,15 +46,19 @@ export default function PostForm({ isOpen, onClose }: modalState) {
     }
   }, [session]);
 
-
-  const handleFilesAdded = (files: FileWithPreview[]) => {
-    setUploadedFiles(files);
-    const hiddenInput = document.getElementById("hiddenFiles") as HTMLInputElement;
-    hiddenInput.value = JSON.stringify(files.map(file => ({
-      name: file.name,
-      type: file.type,
-      content: file.preview,
-    })));
+  const handleFilesAdded = async (files: FileWithPreview[]) => {
+    const blobs = await Promise.all(files.map(fileToBlob));
+    const urls = await uploadFiles(
+      blobs,
+      files.map((file) => file.name)
+    );
+    setUploadedFiles(
+      files.map((file, index) => ({ ...file, url: urls[index] }))
+    );
+    const hiddenInput = document.getElementById(
+      "hiddenFiles"
+    ) as HTMLInputElement;
+    hiddenInput.value = JSON.stringify(urls);
   };
 
   if (!isOpen) return null;
@@ -81,7 +90,10 @@ export default function PostForm({ isOpen, onClose }: modalState) {
           />
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="region">
+          <label
+            className="block text-gray-700 text-sm font-bold mb-2"
+            htmlFor="region"
+          >
             지역
           </label>
           <select
@@ -106,10 +118,20 @@ export default function PostForm({ isOpen, onClose }: modalState) {
           <Input type="date" name="date1" label="날짜 1" />
           <Input type="date" name="date2" label="날짜 2" />
         </div>
-        <Input type="text" name="tag" label="태그" placeholder="태그를 입력하세요." />
+        <Input
+          type="text"
+          name="tag"
+          label="태그"
+          placeholder="태그를 입력하세요."
+        />
         {userId && (
           <div className="hidden">
-            <Input type="hidden" name="userId" label="유저 아이디" value={userId} />
+            <Input
+              type="hidden"
+              name="userId"
+              label="유저 아이디"
+              value={userId}
+            />
           </div>
         )}
         <div className="flex items-center justify-between mt-4">
