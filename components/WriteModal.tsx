@@ -10,26 +10,31 @@ import { FileWithPath } from "react-dropzone";
 import createPost from "@/app/postAction";
 import { useFormState } from "react-dom";
 import uploadFiles from "@/lib/UploadFiles";
+import { redirect } from "next/navigation";
 
 interface modalState {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit: () => void;
 }
 
 interface FileWithPreview extends FileWithPath {
   preview: string;
 }
 
-export default function PostForm({ isOpen, onClose }: modalState) {
+export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
   const { data: session } = useSession();
   const [userId, setUserId] = useState<string | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
-  const [state, action] = useFormState(createPost, null);
+  // const [state, action] = useFormState(createPost, null);
 
+  // 파일 블롭 형태로 수정
   function fileToBlob(file: FileWithPreview): Promise<Blob> {
     return fetch(file.preview).then((res) => res.blob());
   }
 
+  // @TODO: 수정 필요
+  // 유저 아이디 저장
   useEffect(() => {
     if (session) {
       if (session.user && session.user?.name) {
@@ -46,6 +51,7 @@ export default function PostForm({ isOpen, onClose }: modalState) {
     }
   }, [session]);
 
+  // 폼에 파일 추가
   const handleFilesAdded = async (files: FileWithPreview[]) => {
     const blobs = await Promise.all(files.map(fileToBlob));
     const urls = await uploadFiles(
@@ -61,13 +67,34 @@ export default function PostForm({ isOpen, onClose }: modalState) {
     hiddenInput.value = JSON.stringify(urls);
   };
 
+  // 폼 제출시 api 호출 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+    const response = await fetch("/api/posts", {
+      method: "POST",
+      body: JSON.stringify(Object.fromEntries(formData)),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    const result = await response.json();
+    if (result.success) {
+      onSubmit(); // 모달 닫기
+      window.location.href = result.redirectUrl; // 홈으로 리다이렉트
+    } else {
+      console.error("Failed to create post:", result.errors);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
     <main className="fixed flex justify-center items-center inset-0 bg-black bg-opacity-50">
       <form
         className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 flex flex-col w-full h-full sm:w-[640px] sm:h-auto"
-        action={action}
+        // action={action}
+        onSubmit={handleSubmit}
       >
         <input id="hiddenFiles" name="files" type="hidden" />
         <div className="mb-4">
@@ -135,7 +162,7 @@ export default function PostForm({ isOpen, onClose }: modalState) {
           </div>
         )}
         <div className="flex items-center justify-between mt-4">
-          <Button content="공유" type="primary" />
+          <Button content="게시" type="primary" />
         </div>
       </form>
     </main>

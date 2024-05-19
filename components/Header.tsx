@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { getSession, logout } from "@/lib/session";
 import { defaultSession } from "@/lib/sessionSetting";
-import { RedirectType, redirect, useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import WriteModal from "@/components/WriteModal";
 
 const Header = () => {
@@ -16,31 +16,16 @@ const Header = () => {
   const [showDropDown, setShowDropDown] = useState(false);
   const [isModalOpen, setModalOpen] = useState(false);
   const toggleDropDown = () => setShowDropDown(!showDropDown);
-  const handleOpenModal = () => {
-    setModalOpen(true);
-    redirect("/");
-  }
+  const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
   const dropDownRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const username = session ? session.user?.name : emailSession.username;
 
-  // 모달 바깥 클릭시 안 보이기
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        setModalOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [modalRef]);
-
-  const handleSubmit = (event: MouseEvent) => {
-    event.preventDefault();
-    console.log("Form submitted");
+  const handleSubmit = () => {
     handleCloseModal();
-  };
+  }
+
 
   // 드롭다운 바깥 클릭시 안 보이기
   useEffect(() => {
@@ -52,6 +37,17 @@ const Header = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [dropDownRef]);
+
+  // 모달 바깥 클릭시 안 보이기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setModalOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [modalRef]);
 
   // 이메일 세션 저장
   useEffect(() => {
@@ -159,7 +155,7 @@ const Header = () => {
           </div>
         </div>
       </nav>
-      <WriteModal isOpen={isModalOpen} onClose={handleCloseModal} />
+      <WriteModal isOpen={isModalOpen} onClose={handleCloseModal} onSubmit={handleSubmit}/>
     </header>
   );
 };
