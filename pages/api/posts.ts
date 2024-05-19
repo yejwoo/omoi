@@ -1,4 +1,3 @@
-// pages/api/createPost.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import db from '@/lib/db';
 import { z } from 'zod';
@@ -17,54 +16,75 @@ const postSchema = z.object({
 type PostData = z.infer<typeof postSchema>;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
+  // 포스트 생성
+  if (req.method === 'POST') {
+    // Handle POST request
+    const formData = req.body;
 
-  const formData = req.body;
-  console.log(formData);
+    const data = {
+      content: formData.content,
+      region: formData.region,
+      date1: formData.date1,
+      date2: formData.date2,
+      tags1: formData.tags1,
+      tags2: formData.tags2,
+      // userId: Number(formData.userId), // Convert userId to a number
+      userId: 1,
+      images: JSON.parse(formData.files || "[]"), // This should be an array of image URLs
+      postStatus: formData.postStatus
+    };
 
-  const data = {
-    content: formData.content,
-    region: formData.region,
-    date1: formData.date1,
-    date2: formData.date2,
-    tags1: formData.tags1,
-    tags2: formData.tags2,
-    userId: 1, // 수정 필요
-    // userId: Number(formData.userId), // userId를 숫자로 변환
-    images: JSON.parse(formData.files || "[]"), // 업로드된 파일 목록을 문자열로 저장,
-    postStatus: formData.postStatus
-  };
+    const result = await postSchema.safeParseAsync(data);
 
-  const result = await postSchema.safeParseAsync(data);
+    if (!result.success) {
+      return res.status(400).json({ success: false, errors: result.error.flatten() });
+    } else {
+      const postData: PostData = result.data;
 
-  if (!result.success) {
-    return res.status(400).json({ success: false, errors: result.error.flatten() });
-  } else {
-    const postData: PostData = result.data;
-
-    try {
-      await db.post.create({
-        data: {
-          content: postData.content,
-          region: postData.region,
-          date1: postData.date1 ? new Date(postData.date1) : null,
-          date2: postData.date2 ? new Date(postData.date2) : null,
-          tags1: postData.tags1,
-          tags2: postData.tags2,
-          userId: postData.userId,
-          postStatus: postData.postStatus,
-          images: {
-            create: postData.images.map((url: string) => ({ url })), // Assuming your database schema supports nested creation
+      try {
+        await db.post.create({
+          data: {
+            content: postData.content,
+            region: postData.region,
+            date1: postData.date1 ? new Date(postData.date1) : null,
+            date2: postData.date2 ? new Date(postData.date2) : null,
+            tags1: postData.tags1,
+            tags2: postData.tags2,
+            userId: postData.userId,
+            postStatus: postData.postStatus,
+            images: {
+              create: postData.images.map((url: string) => ({ url })),
+            },
           },
+        });
+
+        return res.status(200).json({ success: true, redirectUrl: "/" });
+      } catch (error) {
+        console.error("Failed to save post to database: ", error);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+      }
+    }
+  }
+  // 포스트 조회
+  else if (req.method === 'GET') {
+    try {
+      const posts = await db.post.findMany({
+        include: {
+          images: true,
+          user: true,
+          comments: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
         },
       });
 
-      return res.status(200).json({ success: true, redirectUrl: "/" });
+      return res.status(200).json(posts);
     } catch (error) {
-      console.error("Failed to save post to database: ", error);
-      return res.status(500).json({ success: false, message: 'Internal Server Error' });
+      console.error('Failed to fetch posts:', error);
+      return res.status(500).json({ message: 'Internal Server Error' });
     }
+  } else {
+    return res.status(405).json({ message: 'Method not allowed' });
   }
 }
