@@ -25,12 +25,16 @@ export default function Home() {
   const [hasMore, setHasMore] = useState<boolean>(true);
   const observer = useRef<IntersectionObserver | null>(null);
 
-  const fetchPosts = useCallback(async () => {
+  const fetchPosts = useCallback(async (page: number, initialLoad = false) => {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/posts?page=${page}`);
       const data = await response.json();
-      setPosts((prevPosts) => [...prevPosts, ...data.posts]);
+      if (initialLoad) {
+        setPosts(data.posts);
+      } else {
+        setPosts((prevPosts) => [...prevPosts, ...data.posts]);
+      }
       setHasMore(data.hasMore);
       setIsLoading(false);
     } catch (error) {
@@ -38,11 +42,13 @@ export default function Home() {
       setError("Failed to fetch posts.");
       setIsLoading(false);
     }
-  }, [page]);
+  }, []);
+  
 
   useEffect(() => {
-    fetchPosts();
+    fetchPosts(1, true);
   }, [fetchPosts]);
+  
 
   const lastPostRef = useRef<HTMLDivElement | null>(null);
 
@@ -59,6 +65,14 @@ export default function Home() {
     },
     [isLoading, hasMore]
   );
+  
+
+  useEffect(() => {
+    if (page > 1) {
+      fetchPosts(page);
+    }
+    console.log(posts);
+  }, [page, fetchPosts]);
 
   if (isLoading && page === 1) {
     return (
