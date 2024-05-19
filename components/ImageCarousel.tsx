@@ -29,7 +29,7 @@ const ImageCarousel = ({ images }: ImageCarouselProps) => {
                 src={image.url}
                 alt={`Post image ${index + 1}`}
                 layout="fill"
-                objectFit="cover"
+                objectFit="contain"
               />
             </div>
           ))}

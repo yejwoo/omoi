@@ -79,13 +79,13 @@ export default function Home() {
                 <span className="font-bold">{post.user.username}</span>
               </div>
               <div className="flex gap-1 mt-3">
-                <span className="py-1 px-2 rounded-full text-sm font-sm cursor-pointer text-brand-200 border border-brand-200">
+                <span className="py-1 px-2 rounded-full text-sm font-semibold cursor-pointer text-gray-500 bg-gray-100">
                   {getTag1Name(post.tags1)}
                 </span>
                 {post.tags2 && getTag2Names(post.tags2).map((tag: string, index: number) => (
                   <span
                     key={index}
-                    className="py-1 px-2 rounded-full text-sm font-sm cursor-pointer text-brand-200 border border-brand-200"
+                    className="py-1 px-2 rounded-full text-sm font-semibold cursor-pointer text-gray-500 bg-gray-100"
                   >
                     {tag}
                   </span>
