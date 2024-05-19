@@ -25,18 +25,6 @@ export default function Home() {
   const [hasMore, setHasMore] = useState<boolean>(true);
   const observer = useRef<IntersectionObserver | null>(null);
 
-  const getTag1Name = (value: string) => {
-    const tag = tags1.find((tag) => tag.value === value);
-    return tag ? tag.name : value;
-  };
-
-  const getTag2Names = (values: string) => {
-    return values.split(",").map((value) => {
-      const tag = tags2.find((tag) => tag.value === value);
-      return tag ? tag.name : value;
-    });
-  };
-
   const fetchPosts = useCallback(async () => {
     setIsLoading(true);
     try {
