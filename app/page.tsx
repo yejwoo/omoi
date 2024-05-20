@@ -5,6 +5,7 @@ import Image from "next/image";
 import WriteModal from "@/components/WriteModal";
 import ImageCarousel from "@/components/ImageCarousel";
 import { tags1, tags2 } from "./data/tags";
+import SkeletonPost from "@/components/SkeletonPost";
 
 interface Post {
   id: number;
@@ -76,8 +77,12 @@ export default function Home() {
 
   if (isLoading && page === 1) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
+      <div className="min-h-screen py-20 px-5">
+        <main className="max-w-lg mx-auto">
+          {[...Array(5)].map((_, index) => (
+            <SkeletonPost key={index} />
+          ))}
+        </main>
       </div>
     );
   }
@@ -168,7 +173,6 @@ const PostComponent = ({ post }: { post: Post }) => {
         </button>
 
         <p className="mt-2 text-sm text-gray-700">
-          <span className="font-bold">{post.user.username} </span>
           {post.content}
         </p>
 
