@@ -30,5 +30,10 @@ export async function getSession() {
     session.username = defaultSession.username;
   }
 
-  return session;
+ return {
+    isLoggedIn: session.isLoggedIn,
+    username: session.username,
+    id: session.id,
+    email: session.email,
+  };
 }
