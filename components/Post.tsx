@@ -4,18 +4,9 @@ import { useEffect, useState } from "react";
 import { tags1, tags2 } from "@/app/data/tags";
 import { defaultSession } from "@/lib/sessionSetting";
 import Image from "next/image";
-interface Post {
-  id: number;
-  content: string;
-  images: { url: string }[];
-  user: { username: string };
-  comments: { content: string }[];
-  tags1: string;
-  tags2: string;
-  createdAt: string;
-}
+import IPost from "@/app/interface/IPost";
 
-export default function Post({ post }: { post: Post }) {
+export default function Post({ post }: { post: IPost }) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [emailSession, setEmailSession] = useState(defaultSession);
