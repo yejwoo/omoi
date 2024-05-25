@@ -2,7 +2,8 @@ import ImageCarousel from "@/components/ImageCarousel";
 import { getSession } from "@/lib/session";
 import { useEffect, useState } from "react";
 import { tags1, tags2 } from "@/app/data/tags";
-
+import { defaultSession } from "@/lib/sessionSetting";
+import Image from "next/image";
 interface Post {
   id: number;
   content: string;
@@ -17,42 +18,8 @@ interface Post {
 export default function Post({ post }: { post: Post }) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const [userId, setUserId] = useState<number | null>(null);
-
-  // useEffect(() => {
-  //   const fetchSession = async () => {
-  //     if (!userId) {
-  //       // 로그인 상태가 아니면 새로운 세션 정보를 요청
-  //       const emailSession = await getSession();
-  //       setUserId(emailSession.id || 0);
-  //     }
-  //   };
-
-  //   fetchSession();
-  // }, []);
-
-  const handleLike = async () => {
-    try {
-      const response = await fetch(`/api/posts/${post.id}/like`, {
-        method: liked ? "DELETE" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId: 1 }),
-      });
-
-      if (response.ok) {
-        setLiked(!liked);
-        setLikeCount((prevCount: any) =>
-          liked ? prevCount - 1 : prevCount + 1
-        );
-      } else {
-        console.error("Failed to update like.");
-      }
-    } catch (error) {
-      console.error("Failed to update like.", error);
-    }
-  };
+  const [emailSession, setEmailSession] = useState(defaultSession);
+  const [userId, setUserId] = useState(0);
 
   const getTag1Name = (value: string) => {
     const tag = tags1.find((tag) => tag.value === value);
@@ -65,6 +32,70 @@ export default function Post({ post }: { post: Post }) {
       return tag ? tag.name : value;
     });
   };
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      const emailSession = await getSession();
+      if (emailSession && emailSession.id) {
+        setUserId(emailSession.id || 0);
+      }
+    };
+
+    fetchSession();
+  }, []);
+
+
+
+  // 좋아요 버튼 클릭시 추가 or 삭제
+  const handleLike = async () => {
+    try {
+      const response = await fetch(`/api/posts/${post.id}/like?userId=${userId}`, {
+        method: liked ? "DELETE" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (response.ok) {
+        setLiked(!liked);
+        setLikeCount((prevCount) => liked ? prevCount - 1 : prevCount + 1);
+      } else {
+        console.error("Failed to update like.");
+      }
+    } catch (error) {
+      console.error("Failed to update like.", error);
+    }
+  };
+
+
+  useEffect(() => {
+      // 좋아요 상태 및 개수 가져오기
+  const fetchLikes = async () => {
+    try {
+      const response = await fetch(`/api/posts/${post.id}/like?userId=${userId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // console.log(data);
+        setLikeCount(data.likeCount);
+        setLiked(data.liked);
+      } else {
+        console.error("Failed to fetch likes.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch likes.", error);
+    }
+  };
+    if (userId) {
+      fetchLikes();
+    }
+  }, [userId, post.id]);
 
   return (
     <>
@@ -100,10 +131,15 @@ export default function Post({ post }: { post: Post }) {
 
       <div className="p-5">
         <button
+          type="button"
           className="text-gray-500 hover:text-gray-700 flex items-center gap-2"
           onClick={handleLike}
         >
-          <span className="text-xl text-brand-200">{liked ? "♥️" : "♡"}</span>{likeCount}
+          <span className="text-xl text-brand-200">{liked ? 
+          <Image src="/icons/flower-filled-pink.svg" alt="like" width={24} height={24} /> : 
+          <Image src="/icons/flower-filled-gray.svg" alt="like" width={24} height={24} />}
+          </span>
+          {likeCount}
         </button>
 
         <p className="mt-2 text-sm text-gray-700">{post.content}</p>

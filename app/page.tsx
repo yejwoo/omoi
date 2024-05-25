@@ -17,8 +17,15 @@ interface Post {
   createdAt: string;
 }
 
+interface Like {
+  id: number;
+  postId: number;
+  userId: number;
+}
+
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [likes, setLikes] = useState<Like[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<number>(1);
@@ -44,10 +51,6 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchPosts(1, true);
-  }, [fetchPosts]);
-
   const lastPostRef = useRef<HTMLDivElement | null>(null);
 
   const lastPostElementRef = useCallback(
@@ -64,6 +67,12 @@ export default function Home() {
     [isLoading, hasMore]
   );
 
+  // 초기 포스트 3개 로드
+  useEffect(() => {
+    fetchPosts(1, true);
+  }, [fetchPosts]);
+
+  // 2페이지부터 포스트 로드
   useEffect(() => {
     if (page > 1) {
       fetchPosts(page);
@@ -113,7 +122,9 @@ export default function Home() {
             );
           }
         })}
-        {isLoading && <div className="text-center text-gray-500">Loading more posts...</div>}
+        {isLoading && (
+          <div className="text-center text-gray-500">Loading more posts...</div>
+        )}
         {!hasMore && (
           <div className="text-center text-gray-500">마지막 포스트입니다.</div>
         )}
