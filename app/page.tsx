@@ -5,17 +5,7 @@ import Image from "next/image";
 import WriteModal from "@/components/WriteModal";
 import SkeletonPost from "@/components/SkeletonPost";
 import Post from "@/components/Post";
-
-interface Post {
-  id: number;
-  content: string;
-  images: { url: string }[];
-  user: { username: string };
-  comments: { content: string }[];
-  tags1: string;
-  tags2: string;
-  createdAt: string;
-}
+import IPost from "@/app/interface/IPost";
 
 interface Like {
   id: number;
@@ -24,7 +14,7 @@ interface Like {
 }
 
 export default function Home() {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<IPost[]>([]);
   const [likes, setLikes] = useState<Like[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
