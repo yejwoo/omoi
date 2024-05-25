@@ -19,7 +19,6 @@ export async function logout() {
   const session = await getSession();
   session.destroy();
   redirect("/");
-  // revalidatePath("/") // 무슨 용도?
 }
 
 export async function getSession() {
@@ -30,10 +29,5 @@ export async function getSession() {
     session.username = defaultSession.username;
   }
 
- return {
-    isLoggedIn: session.isLoggedIn,
-    username: session.username,
-    id: session.id,
-    email: session.email,
-  };
+ return session;
 }
