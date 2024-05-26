@@ -1,6 +1,6 @@
 import ImageCarousel from "@/components/ImageCarousel";
 import { getSession } from "@/lib/session";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { tags1, tags2 } from "@/app/data/tags";
 import { defaultSession } from "@/lib/sessionSetting";
 import Image from "next/image";
@@ -35,54 +35,75 @@ export default function Post({ post }: { post: IPost }) {
     fetchSession();
   }, []);
 
-
-
   // 좋아요 버튼 클릭시 추가 or 삭제
-  const handleLike = async () => {
-    try {
-      const response = await fetch(`/api/posts/${post.id}/like?userId=${userId}`, {
-        method: liked ? "DELETE" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId }),
-      });
-
-      if (response.ok) {
+  const handleLike = useCallback(
+    debounce(async () => {
+      try {
+          // Optimistic UI 업데이트
         setLiked(!liked);
-        setLikeCount((prevCount) => liked ? prevCount - 1 : prevCount + 1);
-      } else {
-        console.error("Failed to update like.");
-      }
-    } catch (error) {
-      console.error("Failed to update like.", error);
-    }
-  };
+        setLikeCount((prevCount) => (liked ? prevCount - 1 : prevCount + 1));
 
+        const response = await fetch(
+          `/api/posts/${post.id}/like?userId=${userId}`,
+          {
+            method: liked ? "DELETE" : "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ userId }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to update like.");
+        }
+      } catch (error) {
+        console.error(error);
+        // Optimistic UI 롤백
+        setLiked(!liked);
+        setLikeCount((prevCount) => (liked ? prevCount + 1 : prevCount - 1));
+      }
+    }, 300),
+    [liked, userId, post.id] // 의존성 배열에 포함된 값이 변경될 때만 함수 새로 생성
+  );
+
+  // 연속 클릭 방지용 디바운스 함수
+  function debounce(func: (...args: any[]) => void, wait: number) {
+    let timeout: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        func(...args);
+      }, wait);
+    };
+  }
 
   useEffect(() => {
-      // 좋아요 상태 및 개수 가져오기
-  const fetchLikes = async () => {
-    try {
-      const response = await fetch(`/api/posts/${post.id}/like?userId=${userId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+    // 좋아요 상태 및 개수 가져오기
+    const fetchLikes = async () => {
+      try {
+        const response = await fetch(
+          `/api/posts/${post.id}/like?userId=${userId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
-      if (response.ok) {
-        const data = await response.json();
-        // console.log(data);
-        setLikeCount(data.likeCount);
-        setLiked(data.liked);
-      } else {
-        console.error("Failed to fetch likes.");
+        if (response.ok) {
+          const data = await response.json();
+          // console.log(data);
+          setLikeCount(data.likeCount);
+          setLiked(data.liked);
+        } else {
+          console.error("Failed to fetch likes.");
+        }
+      } catch (error) {
+        console.error("Failed to fetch likes.", error);
       }
-    } catch (error) {
-      console.error("Failed to fetch likes.", error);
-    }
-  };
+    };
     if (userId) {
       fetchLikes();
     }
@@ -126,9 +147,22 @@ export default function Post({ post }: { post: IPost }) {
           className="text-gray-500 hover:text-gray-700 flex items-center gap-2"
           onClick={handleLike}
         >
-          <span className="text-xl text-brand-200">{liked ? 
-          <Image src="/icons/flower-filled-pink.svg" alt="like" width={24} height={24} /> : 
-          <Image src="/icons/flower-filled-gray.svg" alt="like" width={24} height={24} />}
+          <span className="text-xl text-brand-200">
+            {liked ? (
+              <Image
+                src="/icons/flower-filled-pink.svg"
+                alt="like"
+                width={24}
+                height={24}
+              />
+            ) : (
+              <Image
+                src="/icons/flower-filled-gray.svg"
+                alt="like"
+                width={24}
+                height={24}
+              />
+            )}
           </span>
           {likeCount}
         </button>
