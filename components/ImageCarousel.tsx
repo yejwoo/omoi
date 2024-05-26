@@ -29,10 +29,10 @@ const ImageCarousel = ({ images }: ImageCarouselProps) => {
                 src={image.url}
                 alt={`Post image ${index + 1}`}
                 fill
-                // priority={true}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 style={{ objectFit: "contain" }}
-                loading="lazy"
+                placeholder="blur"
+                blurDataURL="/images/dummy.png"
               />
             </div>
           ))}
