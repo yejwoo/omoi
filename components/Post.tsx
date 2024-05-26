@@ -5,12 +5,13 @@ import { tags1, tags2 } from "@/app/data/tags";
 import { defaultSession } from "@/lib/sessionSetting";
 import Image from "next/image";
 import IPost from "@/app/interface/IPost";
+import debounce from "@/lib/debounce";
 
 export default function Post({ post }: { post: IPost }) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [emailSession, setEmailSession] = useState(defaultSession);
-  const [userId, setUserId] = useState(0);
+  const [userId, setUserId] = useState(0); 
 
   const getTag1Name = (value: string) => {
     const tag = tags1.find((tag) => tag.value === value);
@@ -66,17 +67,6 @@ export default function Post({ post }: { post: IPost }) {
     }, 300),
     [liked, userId, post.id] // 의존성 배열에 포함된 값이 변경될 때만 함수 새로 생성
   );
-
-  // 연속 클릭 방지용 디바운스 함수
-  function debounce(func: (...args: any[]) => void, wait: number) {
-    let timeout: NodeJS.Timeout;
-    return (...args: any[]) => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        func(...args);
-      }, wait);
-    };
-  }
 
   useEffect(() => {
     // 좋아요 상태 및 개수 가져오기
