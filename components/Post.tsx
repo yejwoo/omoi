@@ -222,7 +222,7 @@ export default function Post({ post }: { post: IPost }) {
         </button>
         <p className="mt-2 text-sm text-gray-700">{post.content}</p>
         <div className="text-xs text-gray-400 mt-2">
-          {comments ? (
+          {comments.length > 0 ? (
             comments.map((comment) => (
               <div key={comment.id} className="border-b border-gray-200 p-2">
                 {comment.content} | {comment.userId} | {comment.createdAt}
