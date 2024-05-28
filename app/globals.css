@@ -18,3 +18,14 @@ body {
 .skeleton {
   @apply bg-gray-200 animate-pulse;
 }
+
+textarea {
+  border: none;
+  overflow: auto;
+  outline: none;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  resize: none; 
+  vertical-align: middle;
+}
