@@ -11,7 +11,9 @@ export default function Post({ post }: { post: IPost }) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [emailSession, setEmailSession] = useState(defaultSession);
-  const [userId, setUserId] = useState(0); 
+  const [userId, setUserId] = useState(0);
+  const [comment, setComment] = useState("");
+  const [disableBtn, setDisableBtn] = useState(true);
 
   const getTag1Name = (value: string) => {
     const tag = tags1.find((tag) => tag.value === value);
@@ -40,7 +42,7 @@ export default function Post({ post }: { post: IPost }) {
   const handleLike = useCallback(
     debounce(async () => {
       try {
-          // Optimistic UI 업데이트
+        // Optimistic UI 업데이트
         setLiked(!liked);
         setLikeCount((prevCount) => (liked ? prevCount - 1 : prevCount + 1));
 
@@ -99,6 +101,41 @@ export default function Post({ post }: { post: IPost }) {
     }
   }, [userId, post.id]);
 
+  // 댓글 작성
+  const handleComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+
+    try {
+      const response = await fetch(`/api/posts/${post.id}/comments`, {
+        method: "POST",
+        body: JSON.stringify(Object.fromEntries(formData)),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create comment.");
+      }
+
+      const result = await response.json();
+      console.log("댓글: ", result);
+      setComment("");
+    } catch (error) {
+      console.error("Failed to create comment.", error);
+    }
+  };
+
+  // 댓글 실시간 작성 감지
+  const handleChangeComment = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setComment(e.target.value);
+    setDisableBtn(true);
+    if(e.target.value.length > 0) {
+      setDisableBtn(false);
+    }
+  };
+
   return (
     <>
       <header className="p-5">
@@ -156,19 +193,29 @@ export default function Post({ post }: { post: IPost }) {
           </span>
           {likeCount}
         </button>
-
         <p className="mt-2 text-sm text-gray-700">{post.content}</p>
-
-        <p className="text-xs text-gray-500 mt-2">View all comments</p>
+        <p className="text-xs text-gray-400 mt-2">아직 댓글이 없어요.</p>
       </div>
-
-      <form className="border-t border-gray-200 p-3 flex items-center">
-        <input
-          type="text"
-          placeholder="Add a comment..."
-          className="flex-1 border-none focus:ring-0"
+      <form
+        className="border-t border-gray-200 p-3 flex max-h-20"
+        onSubmit={handleComment}
+      >
+        <textarea
+          id="content"
+          name="content"
+          placeholder="댓글을 작성하세요."
+          value={comment}
+          onChange={handleChangeComment}
+          className="flex flex-grow text-sm max-h-20"
         />
-        <button type="submit" className="text-blue-500 font-semibold">
+        <input type="hidden" name="postId" value={post.id} />
+        <input type="hidden" name="userId" value={userId} />
+        <button
+          id="submitBtn"
+          type="submit"
+          className="disabled:text-gray-300 text-brand-200 font-semibold"
+          disabled={disableBtn}
+        >
           Post
         </button>
       </form>
