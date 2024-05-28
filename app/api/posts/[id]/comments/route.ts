@@ -42,6 +42,14 @@ export async function GET (request: Request) {
     const comments = await db.comment.findMany({
       where: {
         postId: postId,
+      },
+      select: {
+        id: true,
+        content: true,
+        userId: true,
+        postId: true,
+        createdAt: true,
+        updatedAt: true,
       }
     });
     return NextResponse.json(comments, { status: 200 });
