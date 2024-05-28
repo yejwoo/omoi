@@ -18,6 +18,8 @@ model User {
   comments             Comment[]
   posts                Post[]
   likes                Like[]
+  createdAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
+  updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
 }
 
 model Post {
@@ -46,6 +48,8 @@ model Image {
   url    String
   postId Int
   post   Post   @relation(fields: [postId], references: [id])
+  createdAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
+  updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
 }
 
 model Comment {
@@ -55,6 +59,8 @@ model Comment {
   postId  Int?
   post    Post?  @relation(fields: [postId], references: [id])
   user    User   @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
+  updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
 }
 
 model Like {
@@ -63,6 +69,6 @@ model Like {
   postId Int
   user   User   @relation(fields: [userId], references: [id])
   post   Post   @relation(fields: [postId], references: [id])
-
+  createdAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
   @@unique([userId, postId])
 }
