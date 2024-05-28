@@ -5,6 +5,7 @@ import { tags1, tags2 } from "@/app/data/tags";
 import { defaultSession } from "@/lib/sessionSetting";
 import Image from "next/image";
 import IPost from "@/app/interface/IPost";
+import IComments from "@/app/interface/IComments";
 import debounce from "@/lib/debounce";
 
 export default function Post({ post }: { post: IPost }) {
@@ -13,6 +14,7 @@ export default function Post({ post }: { post: IPost }) {
   const [emailSession, setEmailSession] = useState(defaultSession);
   const [userId, setUserId] = useState(0);
   const [comment, setComment] = useState("");
+  const [comments, setComments] = useState<IComments[]>([]);
   const [disableBtn, setDisableBtn] = useState(true);
 
   const getTag1Name = (value: string) => {
@@ -98,6 +100,7 @@ export default function Post({ post }: { post: IPost }) {
     };
     if (userId) {
       fetchLikes();
+      fetchComments();
     }
   }, [userId, post.id]);
 
@@ -122,17 +125,41 @@ export default function Post({ post }: { post: IPost }) {
       const result = await response.json();
       console.log("댓글: ", result);
       setComment("");
+      await fetchComments();
     } catch (error) {
       console.error("Failed to create comment.", error);
     }
   };
 
   // 댓글 실시간 작성 감지
-  const handleChangeComment = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleChangeComment = async (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
     setComment(e.target.value);
     setDisableBtn(true);
-    if(e.target.value.length > 0) {
+    if (e.target.value.length > 0) {
       setDisableBtn(false);
+    }
+  };
+
+  // 댓글 조회
+  const fetchComments = async () => {
+    try {
+      const response = await fetch(`/api/posts/${post.id}/comments`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch comment.");
+      }
+
+      const result = await response.json();
+      console.log("댓글: ", result);
+      setComments(result);
+    } catch (error) {
+      console.error("Failed to fetch comment.", error);
     }
   };
 
@@ -194,7 +221,19 @@ export default function Post({ post }: { post: IPost }) {
           {likeCount}
         </button>
         <p className="mt-2 text-sm text-gray-700">{post.content}</p>
-        <p className="text-xs text-gray-400 mt-2">아직 댓글이 없어요.</p>
+        <div className="text-xs text-gray-400 mt-2">
+          {comments ? (
+            comments.map((comment) => (
+              <div key={comment.id} className="border-b border-gray-200 p-2">
+                {comment.content} | {comment.userId} | {comment.createdAt}
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-400">
+              {"댓글이 없습니다."}
+            </p>
+          )}
+        </div>
       </div>
       <form
         className="border-t border-gray-200 p-3 flex max-h-20"

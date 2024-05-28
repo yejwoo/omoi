@@ -1,5 +1,5 @@
 import db from "@/lib/db";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
@@ -25,6 +25,30 @@ export async function POST(request: Request) {
     console.error("Error creating comment: ", error);
     return NextResponse.json(
       { error: "Failed to create comment" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET (request: Request) {
+  try {
+    const url = new URL(request.url);
+    const postId = parseInt(url.pathname.split('/').slice(-2, -1)[0]);
+
+    if (isNaN(postId)) {
+      return NextResponse.json({ error: "Invalid postId" }, { status: 400 });
+    }
+
+    const comments = await db.comment.findMany({
+      where: {
+        postId: postId,
+      }
+    });
+    return NextResponse.json(comments, { status: 200 });
+  } catch (error) {
+    console.error("Failed to fetch posts:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch comment" },
       { status: 500 }
     );
   }
