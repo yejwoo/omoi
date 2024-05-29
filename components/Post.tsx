@@ -9,7 +9,6 @@ import IComments from "@/app/interface/IComments";
 import debounce from "@/lib/debounce";
 import formatDate from "@/lib/formatDate";
 
-
 export default function Post({ post }: { post: IPost }) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
@@ -18,6 +17,11 @@ export default function Post({ post }: { post: IPost }) {
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState<IComments[]>([]);
   const [disableBtn, setDisableBtn] = useState(true);
+  const [clickEditBtn, setClickEditBtn] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState<number>(0);
+  const [commentValues, setCommentValues] = useState<Record<number, string>>(
+    {}
+  );
 
   const getTag1Name = (value: string) => {
     const tag = tags1.find((tag) => tag.value === value);
@@ -165,6 +169,44 @@ export default function Post({ post }: { post: IPost }) {
     }
   };
 
+  // 댓글 수정
+  const handleEditCommentChange = (commentId: number, value: string) => {
+    setCommentValues({
+      ...commentValues,
+      [commentId]: value,
+    });
+  };
+
+  const handleEditCommentSubmit = async (e: React.FormEvent, commentId: number) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch(`/api/comments/${commentId}`, {
+        method: "PUT",
+        body: JSON.stringify({ id: commentId, content: commentValues[commentId] }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to edit comment.");
+      }
+
+      const result = await response.json();
+      console.log("댓글 수정: ", result);
+      setEditingCommentId(0); // 수정 모드 종료
+      await fetchComments(); // 댓글 목록 새로고침
+    } catch (error) {
+      console.error("Failed to edit comment.", error);
+    }
+  };
+
+  const handleEditCommentId = (id: number) => {
+    setEditingCommentId((prevId) => (prevId === id ? 0 : id));
+  };
+  
+  
   return (
     <>
       <header className="p-5">
@@ -230,14 +272,45 @@ export default function Post({ post }: { post: IPost }) {
                 key={comment.id}
                 className="border-b border-gray-200 p-2 flex gap-2"
               >
-                <div>
-                  {comment.content} | {comment.userId} | {formatDate(comment.createdAt)}
-                </div>
-                <button className="text-gray-500">수정</button>
+                {editingCommentId === comment.id ? (
+                  <form
+                    onSubmit={(e) => handleEditCommentSubmit(e, comment.id)}
+                    className="flex flex-grow"
+                  >
+                    <input
+                      type="text"
+                      defaultValue={comment.content}
+                      onChange={(e) =>
+                        handleEditCommentChange(comment.id, e.target.value)
+                      }
+                      className="border p-1 flex-grow"
+                    />
+                    <button
+                      type="submit"
+                      className="bg-gray-200 text-gray-500 p-1 rounded-sm ml-2"
+                    >
+                      제출
+                    </button>
+                  </form>
+                ) : (
+                  <div>
+                    {comment.content} | {comment.userId} |{" "}
+                    {formatDate(comment.createdAt)}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="text-gray-500"
+                  onClick={() => handleEditCommentId(comment.id)}
+                >
+                  {
+                    editingCommentId === comment.id ? "취소" : "수정"
+                  }
+                </button>
               </div>
             ))
           ) : (
-            <p className="text-gray-400">{"댓글이 없습니다."}</p>
+            <p className="text-gray-400">댓글이 없습니다.</p>
           )}
         </div>
       </div>
