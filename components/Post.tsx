@@ -7,6 +7,8 @@ import Image from "next/image";
 import IPost from "@/app/interface/IPost";
 import IComments from "@/app/interface/IComments";
 import debounce from "@/lib/debounce";
+import formatDate from "@/lib/formatDate";
+
 
 export default function Post({ post }: { post: IPost }) {
   const [liked, setLiked] = useState(false);
@@ -224,14 +226,18 @@ export default function Post({ post }: { post: IPost }) {
         <div className="text-xs text-gray-400 mt-2">
           {comments.length > 0 ? (
             comments.map((comment) => (
-              <div key={comment.id} className="border-b border-gray-200 p-2">
-                {comment.content} | {comment.userId} | {comment.createdAt}
+              <div
+                key={comment.id}
+                className="border-b border-gray-200 p-2 flex gap-2"
+              >
+                <div>
+                  {comment.content} | {comment.userId} | {formatDate(comment.createdAt)}
+                </div>
+                <button className="text-gray-500">수정</button>
               </div>
             ))
           ) : (
-            <p className="text-gray-400">
-              {"댓글이 없습니다."}
-            </p>
+            <p className="text-gray-400">{"댓글이 없습니다."}</p>
           )}
         </div>
       </div>
