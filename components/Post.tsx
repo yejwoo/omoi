@@ -1,6 +1,6 @@
 import ImageCarousel from "@/components/ImageCarousel";
 import { getSession } from "@/lib/session";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { tags1, tags2 } from "@/app/data/tags";
 import { defaultSession } from "@/lib/sessionSetting";
 import Image from "next/image";
@@ -8,20 +8,35 @@ import IPost from "@/app/interface/IPost";
 import IComments from "@/app/interface/IComments";
 import debounce from "@/lib/debounce";
 import formatDate from "@/lib/formatDate";
+import useClickOutside from "@/app/hooks/useClickOutside";
 
 export default function Post({ post }: { post: IPost }) {
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
+  // 유저 정보
   const [emailSession, setEmailSession] = useState(defaultSession);
   const [userId, setUserId] = useState(0);
+
+  // 좋아요
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+
+  // 댓글
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState<IComments[]>([]);
   const [disableBtn, setDisableBtn] = useState(true);
-  const [clickEditBtn, setClickEditBtn] = useState(false);
+
+  // 버튼 클릭
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [clickEditBtn, setClickEditBtn] = useState<boolean>(false);
+  const [clickDeleteBtn, setClickDeleteBtn] = useState<boolean>(false);
+  const [clickEditBtnCount, setClickEditBtnCount] = useState<number>(0);
   const [editingCommentId, setEditingCommentId] = useState<number>(0);
+  const [openCommentModalId, setOpenCommentModalId] = useState<number>(0);
   const [commentValues, setCommentValues] = useState<Record<number, string>>(
     {}
   );
+  const commentModalRef = useRef<HTMLUListElement>(null);
+
+  useClickOutside(commentModalRef, () => setShowCommentModal(false));
 
   const getTag1Name = (value: string) => {
     const tag = tags1.find((tag) => tag.value === value);
@@ -40,6 +55,7 @@ export default function Post({ post }: { post: IPost }) {
       const emailSession = await getSession();
       if (emailSession && emailSession.id) {
         setUserId(emailSession.id || 0);
+        setEmailSession(emailSession);
       }
     };
 
@@ -110,7 +126,7 @@ export default function Post({ post }: { post: IPost }) {
     }
   }, [userId, post.id]);
 
-  // 댓글 작성
+  // 댓글 생성 POST
   const handleComment = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget as HTMLFormElement);
@@ -148,7 +164,7 @@ export default function Post({ post }: { post: IPost }) {
     }
   };
 
-  // 댓글 조회
+  // 댓글 조회 GET
   const fetchComments = async () => {
     try {
       const response = await fetch(`/api/posts/${post.id}/comments`, {
@@ -169,7 +185,7 @@ export default function Post({ post }: { post: IPost }) {
     }
   };
 
-  // 댓글 수정
+  // 댓글 수정 PUT
   const handleEditCommentChange = (commentId: number, value: string) => {
     setCommentValues({
       ...commentValues,
@@ -177,13 +193,19 @@ export default function Post({ post }: { post: IPost }) {
     });
   };
 
-  const handleEditCommentSubmit = async (e: React.FormEvent, commentId: number) => {
+  const handleEditCommentSubmit = async (
+    e: React.FormEvent,
+    commentId: number
+  ) => {
     e.preventDefault();
 
     try {
-      const response = await fetch(`/api/comments/${commentId}`, {
+      const response = await fetch(`/api/comment/${commentId}`, {
         method: "PUT",
-        body: JSON.stringify({ id: commentId, content: commentValues[commentId] }),
+        body: JSON.stringify({
+          id: commentId,
+          content: commentValues[commentId],
+        }),
         headers: {
           "Content-Type": "application/json",
         },
@@ -204,9 +226,55 @@ export default function Post({ post }: { post: IPost }) {
 
   const handleEditCommentId = (id: number) => {
     setEditingCommentId((prevId) => (prevId === id ? 0 : id));
+    setClickEditBtn(true);
+    setShowCommentModal(false);
   };
-  
-  
+
+  // 댓글 삭제 DELETE
+  const handleDeleteComment = async (commentId: number) => {
+    handleEditCommentId(commentId);
+    setClickDeleteBtn(true);
+    if (confirm("정말 삭제하시겠습니까?")) {
+      try {
+        const response = await fetch(`/api/comment/${commentId}`, {
+          method: "DELETE",
+          body: JSON.stringify({
+            id: commentId,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to delete comment.");
+        }
+
+        const result = await response.json();
+        console.log("댓글 삭제: ", result.id);
+        setEditingCommentId(0);
+        await fetchComments();
+      } catch (error) {
+        console.error("Failed to delete comment.", error);
+      }
+    }
+  };
+
+  const handleCommentModal = (id: number) => {
+    setOpenCommentModalId((prevId) => (prevId === id ? 0 : id));
+    setClickEditBtnCount((prevCount) => {
+      const newCount = prevCount + 1;
+      // console.log(newCount);
+      // @TODO 모달 바깥 클릭시에도 count + 1
+      if (newCount % 2 === 1) {
+        setShowCommentModal(true);
+      } else {
+        setShowCommentModal(false);
+      }
+      return newCount;
+    });
+  };
+
   return (
     <>
       <header className="p-5">
@@ -270,9 +338,9 @@ export default function Post({ post }: { post: IPost }) {
             comments.map((comment) => (
               <div
                 key={comment.id}
-                className="border-b border-gray-200 p-2 flex gap-2"
+                className="border-b border-gray-200 py-2 flex items-center gap-2"
               >
-                {editingCommentId === comment.id ? (
+                {clickEditBtn && comment.id === editingCommentId ? (
                   <form
                     onSubmit={(e) => handleEditCommentSubmit(e, comment.id)}
                     className="flex flex-grow"
@@ -298,14 +366,63 @@ export default function Post({ post }: { post: IPost }) {
                     {formatDate(comment.createdAt)}
                   </div>
                 )}
+                {comment.userId === emailSession.id && (
+                  <div className="relative">
+                    <button
+                      onClick={() => {
+                        handleCommentModal(comment.id);
+                      }}
+                    >
+                      <Image
+                        src="/icons/more.svg"
+                        alt="더보기"
+                        width={20}
+                        height={20}
+                      />
+                    </button>
+                    <ul
+                      className={`w-20 border border-gray-200 bg-white shadow-md rounded-md absolute z-10 ${
+                        showCommentModal && openCommentModalId === comment.id ? "block" : "hidden"
+                      } `}
+                      ref={commentModalRef}
+                    >
+                      <li
+                        className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-t-md flex"
+                        onClick={() => {
+                          handleEditCommentId(comment.id);
+                        }}
+                      >
+                        <span className="flex-grow">수정</span>
+                        <Image
+                          src="/icons/edit.svg"
+                          alt="편집"
+                          width={16}
+                          height={16}
+                        />
+                      </li>
+                      <li
+                        className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-b-md flex"
+                        onClick={() => {
+                          handleDeleteComment(comment.id);
+                        }}
+                      >
+                        <span className="flex-grow">삭제</span>
+                        <Image
+                          src="/icons/delete.svg"
+                          alt="삭제"
+                          width={16}
+                          height={16}
+                        />
+                      </li>
+                    </ul>
+                  </div>
+                )}
                 <button
                   type="button"
                   className="text-gray-500"
                   onClick={() => handleEditCommentId(comment.id)}
                 >
-                  {
-                    editingCommentId === comment.id ? "취소" : "수정"
-                  }
+                  {editingCommentId === comment.id && "취소"}
                 </button>
               </div>
             ))

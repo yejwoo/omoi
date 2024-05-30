@@ -13,6 +13,7 @@ export async function GET(request: Request) {
     const comments = await db.comment.findMany({
       where: {
         postId: postId,
+        deletedAt: null,
       },
       select: {
         id: true,
