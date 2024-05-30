@@ -19,7 +19,8 @@ model User {
   posts                Post[]
   likes                Like[]
   createdAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
-  updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
+  updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0) @updatedAt
+  deletedAt DateTime? 
 }
 
 model Post {
@@ -40,7 +41,8 @@ model Post {
   likes     Like[]
   isDeleted Boolean   @default(false)
   createdAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
-  updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
+  updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0) @updatedAt
+  deletedAt DateTime? 
 }
 
 model Image {
@@ -49,7 +51,8 @@ model Image {
   postId Int
   post   Post   @relation(fields: [postId], references: [id])
   createdAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
-  updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
+  updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0) @updatedAt
+  deletedAt DateTime? 
 }
 
 model Comment {
@@ -60,7 +63,8 @@ model Comment {
   post    Post?  @relation(fields: [postId], references: [id])
   user    User   @relation(fields: [userId], references: [id])
   createdAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
-  updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
+  updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0) @updatedAt
+  deletedAt DateTime? 
 }
 
 model Like {
