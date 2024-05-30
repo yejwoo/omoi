@@ -7,8 +7,8 @@ import { useState, useRef, useEffect } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { getSession, logout } from "@/lib/session";
 import { defaultSession } from "@/lib/sessionSetting";
-import { redirect, useRouter } from "next/navigation";
 import WriteModal from "@/components/WriteModal";
+import useClickOutside from "@/app/hooks/useClickOutside";
 
 const Header = () => {
   const { data: session } = useSession();
@@ -22,32 +22,12 @@ const Header = () => {
   const modalRef = useRef<HTMLDivElement>(null);
   const username = session ? session.user?.name : emailSession.username;
 
+  useClickOutside(dropDownRef, () => setShowDropDown(false));
+  useClickOutside(modalRef, () => setModalOpen(false));
+
   const handleSubmit = () => {
     handleCloseModal();
   }
-
-
-  // 드롭다운 바깥 클릭시 안 보이기
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropDownRef.current && !dropDownRef.current.contains(event.target as Node)) {
-        setShowDropDown(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [dropDownRef]);
-
-  // 모달 바깥 클릭시 안 보이기
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        setModalOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [modalRef]);
 
   // 이메일 세션 저장
   useEffect(() => {
