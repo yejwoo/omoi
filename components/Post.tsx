@@ -26,17 +26,32 @@ export default function Post({ post }: { post: IPost }) {
 
   // 버튼 클릭
   const [showCommentModal, setShowCommentModal] = useState(false);
-  const [clickEditBtn, setClickEditBtn] = useState<boolean>(false);
-  const [clickDeleteBtn, setClickDeleteBtn] = useState<boolean>(false);
-  const [clickEditBtnCount, setClickEditBtnCount] = useState<number>(0);
   const [editingCommentId, setEditingCommentId] = useState<number>(0);
   const [openCommentModalId, setOpenCommentModalId] = useState<number>(0);
   const [commentValues, setCommentValues] = useState<Record<number, string>>(
     {}
   );
-  const commentModalRef = useRef<HTMLUListElement>(null);
 
-  useClickOutside(commentModalRef, () => setShowCommentModal(false));
+  const commentRefs = useRef<(HTMLUListElement | null)[]>([]);
+
+  // 댓글 모달 바깥 클릭시 모달 끄기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      commentRefs.current.forEach((ref, index) => {
+        if (ref && !ref.contains(event.target as Node)) {
+          if (openCommentModalId === comments[index]?.id) {
+            setOpenCommentModalId(0);
+            setShowCommentModal(false);
+          }
+        }
+      });
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [comments, openCommentModalId]);
 
   const getTag1Name = (value: string) => {
     const tag = tags1.find((tag) => tag.value === value);
@@ -217,23 +232,16 @@ export default function Post({ post }: { post: IPost }) {
 
       const result = await response.json();
       console.log("댓글 수정: ", result);
-      setEditingCommentId(0); // 수정 모드 종료
-      await fetchComments(); // 댓글 목록 새로고침
+      setEditingCommentId(0);
+      await fetchComments();
     } catch (error) {
       console.error("Failed to edit comment.", error);
     }
   };
 
-  const handleEditCommentId = (id: number) => {
-    setEditingCommentId((prevId) => (prevId === id ? 0 : id));
-    setClickEditBtn(true);
-    setShowCommentModal(false);
-  };
-
   // 댓글 삭제 DELETE
   const handleDeleteComment = async (commentId: number) => {
-    handleEditCommentId(commentId);
-    setClickDeleteBtn(true);
+    
     if (confirm("정말 삭제하시겠습니까?")) {
       try {
         const response = await fetch(`/api/comment/${commentId}`, {
@@ -260,20 +268,24 @@ export default function Post({ post }: { post: IPost }) {
     }
   };
 
-  const handleCommentModal = (id: number) => {
-    setOpenCommentModalId((prevId) => (prevId === id ? 0 : id));
-    setClickEditBtnCount((prevCount) => {
-      const newCount = prevCount + 1;
-      // console.log(newCount);
-      // @TODO 모달 바깥 클릭시에도 count + 1
-      if (newCount % 2 === 1) {
-        setShowCommentModal(true);
-      } else {
-        setShowCommentModal(false);
-      }
-      return newCount;
-    });
+  const handleCommentModal = useCallback(
+    (id: number) => {
+      // console.log(`handleCommentModal called with id: ${id}`);
+      setOpenCommentModalId((prevId) => (prevId === id ? 0 : id));
+      setShowCommentModal((prevShow) =>
+        prevShow && openCommentModalId === id ? false : true
+      );
+    },
+    [openCommentModalId]
+  );
+
+  const handleEditCommentId = (id: number) => {
+    setEditingCommentId((prevId) => (prevId === id ? 0 : id));
   };
+
+  useEffect(() => {
+    console.log("editingCommentId:", editingCommentId);
+  }, [editingCommentId]);
 
   return (
     <>
@@ -335,12 +347,12 @@ export default function Post({ post }: { post: IPost }) {
         <p className="mt-2 text-sm text-gray-700">{post.content}</p>
         <div className="text-xs text-gray-400 mt-2">
           {comments.length > 0 ? (
-            comments.map((comment) => (
+            comments.map((comment, index) => (
               <div
                 key={comment.id}
                 className="border-b border-gray-200 py-2 flex items-center gap-2"
               >
-                {clickEditBtn && comment.id === editingCommentId ? (
+                {editingCommentId === comment.id ? (
                   <form
                     onSubmit={(e) => handleEditCommentSubmit(e, comment.id)}
                     className="flex flex-grow"
@@ -359,6 +371,13 @@ export default function Post({ post }: { post: IPost }) {
                     >
                       제출
                     </button>
+                    <button
+                      type="button"
+                      className="bg-gray-200 text-gray-500 p-1 rounded-sm ml-2"
+                      onClick={() => handleEditCommentId(0)}
+                    >
+                      취소
+                    </button>
                   </form>
                 ) : (
                   <div>
@@ -368,11 +387,7 @@ export default function Post({ post }: { post: IPost }) {
                 )}
                 {comment.userId === emailSession.id && (
                   <div className="relative">
-                    <button
-                      onClick={() => {
-                        handleCommentModal(comment.id);
-                      }}
-                    >
+                    <button onClick={() => handleCommentModal(comment.id)}>
                       <Image
                         src="/icons/more.svg"
                         alt="더보기"
@@ -382,15 +397,18 @@ export default function Post({ post }: { post: IPost }) {
                     </button>
                     <ul
                       className={`w-20 border border-gray-200 bg-white shadow-md rounded-md absolute z-10 ${
-                        showCommentModal && openCommentModalId === comment.id ? "block" : "hidden"
+                        showCommentModal && openCommentModalId === comment.id
+                          ? "block"
+                          : "hidden"
                       } `}
-                      ref={commentModalRef}
+                      ref={(el) => {
+                        console.log("check ref: ", el, commentRefs.current[index]);
+                        commentRefs.current[index] = el;
+                      }}
                     >
                       <li
                         className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-t-md flex"
-                        onClick={() => {
-                          handleEditCommentId(comment.id);
-                        }}
+                        onClick={() => handleEditCommentId(comment.id)}
                       >
                         <span className="flex-grow">수정</span>
                         <Image
@@ -402,9 +420,7 @@ export default function Post({ post }: { post: IPost }) {
                       </li>
                       <li
                         className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-b-md flex"
-                        onClick={() => {
-                          handleDeleteComment(comment.id);
-                        }}
+                        onClick={() => handleDeleteComment(comment.id)}
                       >
                         <span className="flex-grow">삭제</span>
                         <Image
@@ -417,13 +433,6 @@ export default function Post({ post }: { post: IPost }) {
                     </ul>
                   </div>
                 )}
-                <button
-                  type="button"
-                  className="text-gray-500"
-                  onClick={() => handleEditCommentId(comment.id)}
-                >
-                  {editingCommentId === comment.id && "취소"}
-                </button>
               </div>
             ))
           ) : (
