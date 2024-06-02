@@ -281,6 +281,7 @@ export default function Post({ post }: { post: IPost }) {
 
   const handleEditCommentId = (id: number) => {
     setEditingCommentId((prevId) => (prevId === id ? 0 : id));
+    setShowCommentModal(!showCommentModal);
   };
 
   useEffect(() => {
@@ -350,30 +351,29 @@ export default function Post({ post }: { post: IPost }) {
             comments.map((comment, index) => (
               <div
                 key={comment.id}
-                className="border-b border-gray-200 py-2 flex items-center gap-2"
+                className="border-b border-gray-100 py-3 flex items-center gap-2"
               >
                 {editingCommentId === comment.id ? (
                   <form
                     onSubmit={(e) => handleEditCommentSubmit(e, comment.id)}
                     className="flex flex-grow"
                   >
-                    <input
-                      type="text"
+                    <textarea
                       defaultValue={comment.content}
                       onChange={(e) =>
                         handleEditCommentChange(comment.id, e.target.value)
                       }
-                      className="border p-1 flex-grow"
+                      className="p-1 flex-grow"
                     />
                     <button
                       type="submit"
-                      className="bg-gray-200 text-gray-500 p-1 rounded-sm ml-2"
+                      className="bg-brand-100 text-white px-2 py-1 rounded-sm ml-2"
                     >
                       제출
                     </button>
                     <button
                       type="button"
-                      className="bg-gray-200 text-gray-500 p-1 rounded-sm ml-2"
+                      className="bg-gray-200 text-gray-500 px-2 py-1 rounded-sm ml-2"
                       onClick={() => handleEditCommentId(0)}
                     >
                       취소
@@ -402,7 +402,6 @@ export default function Post({ post }: { post: IPost }) {
                           : "hidden"
                       } `}
                       ref={(el) => {
-                        console.log("check ref: ", el, commentRefs.current[index]);
                         commentRefs.current[index] = el;
                       }}
                     >
