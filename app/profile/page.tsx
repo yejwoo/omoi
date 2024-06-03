@@ -4,16 +4,22 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { getSession } from "@/lib/session";
 import { defaultSession } from "@/lib/sessionSetting";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Button from "@/components/Button";
 import ProfileImageDropzone from "@/components/ProfileDropzone";
+import Input from "@/components/Input";
+import uploadFiles from "@/lib/UploadFiles";
+
+interface FileWithPreview extends File {
+  preview: string;
+  url?: string;
+}
 
 const MyOmoi = () => {
   const { data: session } = useSession();
   const [emailSession, setEmailSession] = useState(defaultSession);
   const [nickname, setNickname] = useState(session?.user?.name || emailSession.username);
-  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [profileImage, setProfileImage] = useState<FileWithPreview | null>(null);
   const [email, setEmail] = useState(session?.user?.email || emailSession.email);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -31,40 +37,42 @@ const MyOmoi = () => {
     fetchSession();
   }, [emailSession.isLoggedIn]);
 
-  const handleNicknameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setNickname(event.target.value);
+  const fileToBlob = (file: FileWithPreview): Promise<Blob> => {
+    return fetch(file.preview).then((res) => res.blob());
   };
 
-  const handleProfileImageChange = (file: File | null) => {
-    setProfileImage(file);
+  const handleProfileImageChange = async (file: FileWithPreview | null) => {
+    if (file) {
+      const blob = await fileToBlob(file);
+      const urls = await uploadFiles([blob], [file.name]);
+      const url = urls[0];
+      setProfileImage({ ...file, url });
+      const hiddenInput = document.getElementById("hiddenProfileImage") as HTMLInputElement;
+      hiddenInput.value = url;
+    } else {
+      setProfileImage(null);
+      const hiddenInput = document.getElementById("hiddenProfileImage") as HTMLInputElement;
+      hiddenInput.value = "";
+    }
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  // 유저 프로필 폼 제출
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
     setIsLoading(true);
-
-    const formData = new FormData();
-    formData.append("nickname", nickname);
-    if (profileImage) {
-      formData.append("profileImage", profileImage);
+    const response = await fetch("/api/user/update", {
+      method: "POST",
+      body: formData,
+    });
+    const result = await response.json();
+    if (result.success) {
+      console.log(result);
+    // router.reload();
+    } else {
+      console.error("Failed to update user profile:", result.errors);
     }
-
-    try {
-      const response = await fetch("/api/user", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        router.reload();
-      } else {
-        console.error("Failed to update profile.");
-      }
-    } catch (error) {
-      console.error("Failed to update profile:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    setIsLoading(false);
   };
 
   return (
@@ -85,15 +93,26 @@ const MyOmoi = () => {
             <label className="block text-gray-700">닉네임</label>
             <input
               type="text"
-              value={nickname}
-              onChange={handleNicknameChange}
+              name="username"
+              defaultValue={nickname}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
             />
           </div>
           <div>
             <label className="block text-gray-700 mb-4">프로필 이미지</label>
             <ProfileImageDropzone onFileAdded={handleProfileImageChange} />
+            <input type="hidden" id="hiddenProfileImage" name="profile" />
           </div>
+          {emailSession.id && (
+            <div className="hidden">
+              <Input
+                type="hidden"
+                name="id"
+                label="유저 아이디"
+                value={emailSession.id}
+              />
+            </div>
+          )}
           <Button
             content={isLoading ? "업데이트 중..." : "업데이트"}
             type="primary"

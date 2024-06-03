@@ -10,18 +10,23 @@ interface ProfileImageDropzoneProps {
   onFileAdded: (file: FileWithPreview | null) => void;
 }
 
-const ProfileImageDropzone: React.FC<ProfileImageDropzoneProps> = ({ onFileAdded }) => {
+const ProfileImageDropzone: React.FC<ProfileImageDropzoneProps> = ({
+  onFileAdded,
+}) => {
   const [file, setFile] = useState<FileWithPreview | null>(null);
 
-  const onDrop = useCallback((acceptedFiles: FileWithPath[]) => {
-    if (acceptedFiles.length > 0) {
-      const newFile = Object.assign(acceptedFiles[0], {
-        preview: URL.createObjectURL(acceptedFiles[0]),
-      });
-      setFile(newFile);
-      onFileAdded(newFile);
-    }
-  }, [onFileAdded]);
+  const onDrop = useCallback(
+    (acceptedFiles: FileWithPath[]) => {
+      if (acceptedFiles.length > 0) {
+        const newFile = Object.assign(acceptedFiles[0], {
+          preview: URL.createObjectURL(acceptedFiles[0]),
+        });
+        setFile(newFile);
+        onFileAdded(newFile);
+      }
+    },
+    [onFileAdded]
+  );
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -54,29 +59,40 @@ const ProfileImageDropzone: React.FC<ProfileImageDropzoneProps> = ({ onFileAdded
     <section className="container">
       <div {...getRootProps({ className: "dropzone" })}>
         <input {...getInputProps()} />
-        <div className="w-24 h-24 flex flex-col gap-2 justify-center items-center bg-gray-200 rounded-full hover:bg-gray-300 hover:transition-all cursor-pointer overflow-hidden">
-          {file ? (
-            <Image
-              src={file.preview}
-              alt="profile preview"
-              width={120}
-              height={120}
-              style={{ objectFit: "cover" }}
-            />
-          ) : (
-            <div className="text-center text-gray-500">+</div>
+        <div className="relative group w-24">
+          {file && (
+            <button
+              className="mt-2 p-1 text-white rounded-full bg-gray-200 hover:bg-gray-300 absolute z-10 top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                removeFile();
+              }}
+              type="button"
+            >
+              <Image
+                src="/icons/close.svg"
+                width={16}
+                height={16}
+                alt="close"
+              />
+            </button>
           )}
+          <div className="w-24 h-24 flex flex-col gap-2 justify-center items-center bg-gray-200 rounded-full hover:bg-gray-300 hover:transition-all cursor-pointer overflow-hidden">
+            {file ? (
+              <div className="relative w-full h-full">
+                <Image
+                  src={file.preview}
+                  alt="profile preview"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div className="text-center text-gray-500">+</div>
+            )}
+          </div>
         </div>
       </div>
-      {file && (
-        <button
-          className="mt-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-          onClick={removeFile}
-          type="button"
-        >
-          삭제
-        </button>
-      )}
     </section>
   );
 };
