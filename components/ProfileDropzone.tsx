@@ -8,10 +8,12 @@ interface FileWithPreview extends FileWithPath {
 
 interface ProfileImageDropzoneProps {
   onFileAdded: (file: FileWithPreview | null) => void;
+  profile?: string;
 }
 
 const ProfileImageDropzone: React.FC<ProfileImageDropzoneProps> = ({
   onFileAdded,
+  profile,
 }) => {
   const [file, setFile] = useState<FileWithPreview | null>(null);
 
@@ -83,6 +85,15 @@ const ProfileImageDropzone: React.FC<ProfileImageDropzoneProps> = ({
                 <Image
                   src={file.preview}
                   alt="profile preview"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ) : profile ? (
+              <div className="relative w-full h-full">
+                <Image
+                  src={profile}
+                  alt="user profile"
                   fill
                   className="object-cover"
                 />

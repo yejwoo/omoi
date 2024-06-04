@@ -21,13 +21,14 @@ const Header = () => {
   const dropDownRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const username = session ? session.user?.name : emailSession.username;
+  const [profileImage, setProfileImage] = useState<string>("");
 
   useClickOutside(dropDownRef, () => setShowDropDown(false));
   useClickOutside(modalRef, () => setModalOpen(false));
 
   const handleSubmit = () => {
     handleCloseModal();
-  }
+  };
 
   // 이메일 세션 저장
   useEffect(() => {
@@ -41,6 +42,31 @@ const Header = () => {
 
     fetchSession();
   }, [emailSession.isLoggedIn]);
+
+  useEffect(() => {
+    if (emailSession.id) {
+      const fetchUserProfile = async () => {
+        try {
+          const response = await fetch(`/api/user/${emailSession.id}`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log("user profile", data);
+            setProfileImage(data.data.profile);
+          }
+        } catch (error) {
+          console.error("Failed to fetch user profile", error);
+        }
+      };
+
+      fetchUserProfile();
+    }
+  }, [emailSession.id]);
 
   // 로그아웃 함수
   const handleLogout = async () => {
@@ -68,7 +94,12 @@ const Header = () => {
             <ul className="flex gap-2">
               <li>
                 <Link className="block px-2 py-4" href="/">
-                  <Image src="/icons/home.svg" width={24} height={24} alt="home" />
+                  <Image
+                    src="/icons/home.svg"
+                    width={24}
+                    height={24}
+                    alt="home"
+                  />
                 </Link>
               </li>
             </ul>
@@ -100,7 +131,18 @@ const Header = () => {
                     className="flex items-center gap-2 px-2 py-4 cursor-pointer text-sm"
                     onClick={toggleDropDown}
                   >
-                    <div className="inline-block w-8 h-8 bg-slate-300 rounded-full"></div>
+                    {profileImage ? (
+                      <div className="relative w-8 h-8 rounded-full">
+                        <Image
+                          src={profileImage}
+                          fill
+                          className="object-cover rounded-full"
+                          alt="profile"
+                        />
+                      </div>
+                    ) : (
+                      <div className="inline-block w-8 h-8 bg-slate-300 rounded-full"></div>
+                    )}
                   </div>
                 </div>
                 {showDropDown && (
@@ -135,7 +177,11 @@ const Header = () => {
           </div>
         </div>
       </nav>
-      <WriteModal isOpen={isModalOpen} onClose={handleCloseModal} onSubmit={handleSubmit}/>
+      <WriteModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSubmit={handleSubmit}
+      />
     </header>
   );
 };
