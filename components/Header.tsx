@@ -26,6 +26,10 @@ const Header = () => {
   useClickOutside(dropDownRef, () => setShowDropDown(false));
   useClickOutside(modalRef, () => setModalOpen(false));
 
+  const handleLinkClick = () => {
+    setShowDropDown(false);
+  };
+
   const handleSubmit = () => {
     handleCloseModal();
   };
@@ -148,17 +152,17 @@ const Header = () => {
                 {showDropDown && (
                   <ul className="origin-top-right absolute right-0 mt-2 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 cursor-pointer">
                     <li className="text-gray-700 text-base rounded-t-md">
-                      <Link className="block px-4 py-2" href="/my-omoi">
+                      <Link className="block px-4 py-2" href="/my-omoi" onClick={handleLinkClick}>
                         <span className="font-bold">{username}</span> 님
                       </Link>
                     </li>
                     <li className="text-gray-700 text-sm hover:bg-gray-100">
-                      <Link className="block px-4 py-2" href="/my-omoi">
+                      <Link className="block px-4 py-2" href="/my-omoi" onClick={handleLinkClick}>
                         내 피드
                       </Link>
                     </li>
                     <li className="text-gray-700 text-sm hover:bg-gray-100">
-                      <Link className="block px-4 py-2" href="/profile">
+                      <Link className="block px-4 py-2" href="/profile" onClick={handleLinkClick}>
                         프로필 수정
                       </Link>
                     </li>
