@@ -150,11 +150,11 @@ const Header = () => {
                   </div>
                 </div>
                 {showDropDown && (
-                  <ul className="origin-top-right absolute right-0 mt-2 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 cursor-pointer">
+                  <ul className="origin-top-right absolute right-0 mt-2 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                     <li className="text-gray-700 text-base rounded-t-md">
-                      <Link className="block px-4 py-2" href="/my-omoi" onClick={handleLinkClick}>
+                      <div className="block px-4 py-2"  onClick={handleLinkClick}>
                         <span className="font-bold">{username}</span> 님
-                      </Link>
+                      </div>
                     </li>
                     <li className="text-gray-700 text-sm hover:bg-gray-100">
                       <Link className="block px-4 py-2" href="/my-omoi" onClick={handleLinkClick}>
