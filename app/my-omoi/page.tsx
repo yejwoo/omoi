@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import IPost from "@/app/interface/IPost";
 import { tags1, tags2 } from "@/app/data/tags";
+import useUserProfile from "../hooks/useUserProfile";
 
 const Home = () => {
   const [posts, setPosts] = useState<IPost[]>([]);
@@ -13,6 +14,7 @@ const Home = () => {
   const [userName, setUserName] = useState<string>("");
   const modalRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setModalOpen] = useState<Boolean>(false);
+  const { profileImage, loading, error } = useUserProfile(userId || 0);
 
   const getTag1Name = (value: string) => {
     const tag = tags1.find((tag) => tag.value === value);
@@ -81,11 +83,23 @@ const Home = () => {
     <div className="min-h-screen bg-gray-50 py-20 px-5">
       <div className="max-w-lg mx-auto">
         {/* 상단 유저 프로필 */}
-        <div className="flex items-center space-x-4 p-4 bg-white shadow w-full max-w-2xl">
-          <div className="w-12 h-12 rounded-full bg-gray-300"></div>
+        <div className="flex items-start space-x-4 p-4 bg-white shadow w-full max-w-2xl">
+          {profileImage ? (
+            <div className="relative w-10 h-10 rounded-full flex-shrink-0">
+              <Image
+                src={profileImage}
+                fill
+                className="object-cover rounded-full"
+                alt="profile"
+              />
+            </div>
+          ) : (
+            <div className="inline-block w-10 h-10 bg-gray-300 rounded-full"></div>
+          )}
           <div>
-            <h1 className="text-xl font-bold">{userName}</h1>
-            {/* <p className="text-gray-600">Bio goes here...</p> */}
+            <h1 className="font-semibold">{userName}</h1>
+            {/* 소개글 */}
+            <p className="text-sm text-gray-600">Bio goes here...</p>
           </div>
         </div>
 
@@ -133,8 +147,19 @@ const Home = () => {
                 />
               </button>
               <div className="flex items-center gap-2">
-                <div className="w-12 h-12 rounded-full bg-gray-300"></div>
-                <h2 className="text-xl font-bold">
+                {profileImage ? (
+                  <div className="relative w-8 h-8 rounded-full">
+                    <Image
+                      src={profileImage}
+                      fill
+                      className="object-cover rounded-full"
+                      alt="profile"
+                    />
+                  </div>
+                ) : (
+                  <div className="inline-block w-8 h-8 bg-slate-300 rounded-full"></div>
+                )}
+                <h2 className="text-base font-semibold">
                   {selectedPost.user.username}
                 </h2>
               </div>

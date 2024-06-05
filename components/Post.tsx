@@ -9,11 +9,13 @@ import IComments from "@/app/interface/IComments";
 import debounce from "@/lib/debounce";
 import formatDate from "@/lib/formatDate";
 import useClickOutside from "@/app/hooks/useClickOutside";
+import useUserProfile from "@/app/hooks/useUserProfile";
 
 export default function Post({ post }: { post: IPost }) {
   // 유저 정보
   const [emailSession, setEmailSession] = useState(defaultSession);
   const [userId, setUserId] = useState(0);
+  const { profileImage } = useUserProfile(userId || 0);
 
   // 좋아요
   const [liked, setLiked] = useState(false);
@@ -241,7 +243,6 @@ export default function Post({ post }: { post: IPost }) {
 
   // 댓글 삭제 DELETE
   const handleDeleteComment = async (commentId: number) => {
-    
     if (confirm("정말 삭제하시겠습니까?")) {
       try {
         const response = await fetch(`/api/comment/${commentId}`, {
@@ -284,16 +285,23 @@ export default function Post({ post }: { post: IPost }) {
     setShowCommentModal(!showCommentModal);
   };
 
-  useEffect(() => {
-    console.log("editingCommentId:", editingCommentId);
-  }, [editingCommentId]);
-
   return (
     <>
       <header className="p-5">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden"></div>
-          <span className="font-bold">{post.user.username}</span>
+          {post.user.profile ? (
+            <div className="relative w-10 h-10 rounded-full flex-shrink-0">
+              <Image
+                src={post.user.profile}
+                fill
+                className="object-cover rounded-full"
+                alt="profile"
+              />
+            </div>
+          ) : (
+            <div className="inline-block w-10 h-10 bg-gray-300 rounded-full"></div>
+          )}
+          <span className="font-semibold">{post.user.username}</span>
         </div>
         {(post.tags1 || post.tags2) && (
           <div className="flex gap-1 mt-3">
@@ -351,42 +359,64 @@ export default function Post({ post }: { post: IPost }) {
             comments.map((comment, index) => (
               <div
                 key={comment.id}
-                className="border-b border-gray-100 py-3 flex items-center gap-2"
+                className="border-b border-gray-100 py-3 flex flex-col gap-2"
               >
+                {/* 댓글 수정 폼 */}
                 {editingCommentId === comment.id ? (
                   <form
                     onSubmit={(e) => handleEditCommentSubmit(e, comment.id)}
-                    className="flex flex-grow"
                   >
                     <textarea
                       defaultValue={comment.content}
                       onChange={(e) =>
                         handleEditCommentChange(comment.id, e.target.value)
                       }
-                      className="p-1 flex-grow"
+                      className="p-1 w-full resize-y min-h-10"
                     />
+                    <button
+                      type="button"
+                      className="bg-gray-200 text-gray-500 px-2 py-1 rounded-sm"
+                      onClick={() => handleEditCommentId(0)}
+                    >
+                      취소
+                    </button>
                     <button
                       type="submit"
                       className="bg-brand-100 text-white px-2 py-1 rounded-sm ml-2"
                     >
                       제출
                     </button>
-                    <button
-                      type="button"
-                      className="bg-gray-200 text-gray-500 px-2 py-1 rounded-sm ml-2"
-                      onClick={() => handleEditCommentId(0)}
-                    >
-                      취소
-                    </button>
                   </form>
                 ) : (
-                  <div>
-                    {comment.content} | {comment.userId} |{" "}
-                    {formatDate(comment.createdAt)}
+                  <div className="text-sm">
+                    {/* 유저 프로필 */}
+                    <div className="flex flex-shrink-0 gap-2 items-center mb-3">
+                      {comment.user.profile ? (
+                        <div className="relative w-6 h-6 rounded-full flex-shrink-0">
+                          <Image
+                            src={comment.user.profile}
+                            fill
+                            className="object-cover rounded-full"
+                            alt="profile"
+                          />
+                        </div>
+                      ) : (
+                        <div className="inline-block w-6 h-6 bg-slate-300 rounded-full"></div>
+                      )}
+                      <span className="font-semibold text-gray-700 flex-shrink-0">
+                        {comment.user.username}
+                      </span>
+                    </div>
+                    {/* 댓글 내용 */}
+                    <span className="text-gray-500">{comment.content}</span>
                   </div>
                 )}
+                {/* 날짜 & 더보기 모달 */}
                 {comment.userId === emailSession.id && (
-                  <div className="relative">
+                  <div className="relative flex items-center gap-2">
+                    <span className="text-xs">
+                      {formatDate(comment.createdAt)}
+                    </span>
                     <button onClick={() => handleCommentModal(comment.id)}>
                       <Image
                         src="/icons/more.svg"
@@ -396,7 +426,7 @@ export default function Post({ post }: { post: IPost }) {
                       />
                     </button>
                     <ul
-                      className={`w-20 border border-gray-200 bg-white shadow-md rounded-md absolute z-10 ${
+                      className={`w-20 border border-gray-200 bg-white shadow-md rounded-md absolute left-16 top-6 z-10 ${
                         showCommentModal && openCommentModalId === comment.id
                           ? "block"
                           : "hidden"
@@ -439,6 +469,7 @@ export default function Post({ post }: { post: IPost }) {
           )}
         </div>
       </div>
+      {/* 댓글 작성 폼 */}
       <form
         className="border-t border-gray-200 p-3 flex max-h-20"
         onSubmit={handleComment}

@@ -32,6 +32,7 @@ export default function Home() {
       } else {
         setPosts((prevPosts) => [...prevPosts, ...data.posts]);
       }
+      console.log("포스트: ", data.posts)
       setHasMore(data.hasMore);
       setIsLoading(false);
     } catch (error) {

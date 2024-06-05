@@ -22,6 +22,12 @@ export async function GET(request: Request) {
         postId: true,
         createdAt: true,
         updatedAt: true,
+        user: {
+          select: {
+            username: true,
+            profile: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
