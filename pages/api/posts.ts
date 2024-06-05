@@ -105,7 +105,13 @@ export default async function handler(
       const posts = await db.post.findMany({
         include: {
           images: true,
-          user: true,
+          user: {
+            select: {
+              username: true,
+              email: true,
+              profile: true,
+            },
+          },
           comments: true,
         },
         orderBy: {
