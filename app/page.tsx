@@ -6,6 +6,9 @@ import WriteModal from "@/components/WriteModal";
 import SkeletonPost from "@/components/SkeletonPost";
 import Post from "@/components/Post";
 import IPost from "@/app/interface/IPost";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { defaultSession } from "@/lib/sessionSetting";
 
 interface Like {
   id: number;
@@ -21,6 +24,19 @@ export default function Home() {
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const observer = useRef<IntersectionObserver | null>(null);
+  const [emailSession, setEmailSession] = useState(defaultSession);
+
+  useEffect(() => {
+    const fetchSession = async () => {
+      const emailSession = await getSession();
+      setEmailSession(emailSession);
+    };
+
+    fetchSession();
+    if (!emailSession.isLoggedIn) {
+      redirect("/signin");
+    }
+  }, []);
 
   const fetchPosts = useCallback(async (page: number, initialLoad = false) => {
     setIsLoading(true);
@@ -32,7 +48,7 @@ export default function Home() {
       } else {
         setPosts((prevPosts) => [...prevPosts, ...data.posts]);
       }
-      console.log("포스트: ", data.posts)
+      console.log("포스트: ", data.posts);
       setHasMore(data.hasMore);
       setIsLoading(false);
     } catch (error) {
@@ -68,7 +84,7 @@ export default function Home() {
     if (page > 1) {
       fetchPosts(page);
     }
-    console.log(posts);
+    // console.log(posts);
   }, [page, fetchPosts]);
 
   if (isLoading && page === 1) {
