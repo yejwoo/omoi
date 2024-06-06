@@ -82,8 +82,7 @@ export default async function handler(
           comments: true,
         },
         where: {
-          userId: userId,
-          postStatus: "public",
+          userId: userId
         },
         orderBy: {
           createdAt: "desc",
@@ -96,7 +95,7 @@ export default async function handler(
       return res.status(500).json({ message: "Internal Server Error" });
     }
   }
-  // 포스트 조회(피드)
+  // 포스트 조회(전체 피드)
   else if (req.method === "GET") {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 3; // Default limit to 3
@@ -114,6 +113,9 @@ export default async function handler(
             },
           },
           comments: true,
+        },
+        where: {
+          postStatus: "public"
         },
         orderBy: {
           createdAt: "desc",
