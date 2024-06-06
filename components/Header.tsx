@@ -9,6 +9,8 @@ import { getSession, logout } from "@/lib/session";
 import { defaultSession } from "@/lib/sessionSetting";
 import WriteModal from "@/components/WriteModal";
 import useClickOutside from "@/app/hooks/useClickOutside";
+import { redirect } from "next/navigation";
+import useUserProfile from "@/app/hooks/useUserProfile";
 
 const Header = () => {
   const { data: session } = useSession();
@@ -21,7 +23,7 @@ const Header = () => {
   const dropDownRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const username = session ? session.user?.name : emailSession.username;
-  const [profileImage, setProfileImage] = useState<string>("");
+  const { profileImage } = useUserProfile(emailSession.id || 0);
 
   useClickOutside(dropDownRef, () => setShowDropDown(false));
   useClickOutside(modalRef, () => setModalOpen(false));
@@ -46,31 +48,6 @@ const Header = () => {
 
     fetchSession();
   }, [emailSession.isLoggedIn]);
-
-  useEffect(() => {
-    if (emailSession.id) {
-      const fetchUserProfile = async () => {
-        try {
-          const response = await fetch(`/api/user/${emailSession.id}`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            console.log("user profile", data);
-            setProfileImage(data.data.profile);
-          }
-        } catch (error) {
-          console.error("Failed to fetch user profile", error);
-        }
-      };
-
-      fetchUserProfile();
-    }
-  }, [emailSession.id]);
 
   // 로그아웃 함수
   const handleLogout = async () => {
