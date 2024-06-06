@@ -83,6 +83,7 @@ export default async function handler(
         },
         where: {
           userId: userId,
+          postStatus: "public",
         },
         orderBy: {
           createdAt: "desc",
