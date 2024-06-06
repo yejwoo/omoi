@@ -154,6 +154,7 @@ const MyOmoi = () => {
           <Button
             content={isLoading ? "업데이트 중..." : "업데이트"}
             type="primary"
+            isSubmitting={isLoading}
           />
         </form>
       </div>

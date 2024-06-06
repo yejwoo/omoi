@@ -36,11 +36,18 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
   const [selectedTag1, setSelectedTag1] = useState<string>("");
   const [selectedTag2, setSelectedTag2] = useState<string[]>([]);
   const [content, setContent] = useState<string>("");
-  const [errors, setErrors] = useState<{ content: boolean; files: boolean }>({
+  const [region, setRegion] = useState<string>("");
+  const [errors, setErrors] = useState<{
+    content: boolean;
+    region: boolean;
+    files: boolean;
+  }>({
     content: false,
+    region: false,
     files: false,
   });
   const modalRef = useRef<HTMLDivElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // 유저 세션 데이터 패칭
@@ -123,30 +130,40 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+    formData.set("tags1", selectedTag1);
+    formData.set("tags2", selectedTag2.join(","));
+
     const newErrors = {
       content: content.trim() === "",
+      region: region === "",
       files: uploadedFiles.length === 0,
     };
 
     setErrors(newErrors);
 
-    if (!newErrors.content && !newErrors.files) {
-      const formData = new FormData(e.currentTarget as HTMLFormElement);
-      formData.set("tags1", selectedTag1);
-      formData.set("tags2", selectedTag2.join(","));
-      const response = await fetch("/api/posts", {
-        method: "POST",
-        body: JSON.stringify(Object.fromEntries(formData)),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      const result = await response.json();
-      if (result.success) {
-        onSubmit(); // 모달 닫기
-        window.location.href = result.redirectUrl; // 홈으로 리다이렉트
-      } else {
-        console.error("Failed to create post:", result.errors);
+    if (!newErrors.content && !newErrors.region && !newErrors.files) {
+      setIsSubmitting(true);
+
+      try {
+        const response = await fetch("/api/posts", {
+          method: "POST",
+          body: JSON.stringify(Object.fromEntries(formData)),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const result = await response.json();
+        if (result.success) {
+          onSubmit(); // 모달 닫기
+          window.location.href = result.redirectUrl; // 홈으로 리다이렉트
+        } else {
+          console.error("Failed to create post:", result.errors);
+        }
+      } catch (error) {
+        console.error("Failed to create post:", error);
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
@@ -157,6 +174,12 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
       setErrors((prevErrors) => ({ ...prevErrors, content: false }));
     }
   }, [content]);
+
+  useEffect(() => {
+    if (region !== "") {
+      setErrors((prevErrors) => ({ ...prevErrors, region: false }));
+    }
+  }, [region]);
 
   useEffect(() => {
     if (uploadedFiles.length > 0) {
@@ -183,9 +206,8 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
               alt="close"
               onClick={onClose}
             />
-            <Dropzone
-              onFilesAdded={handleFilesAdded}
-            />
+            <p className="text-xs mb-4">*이미지, 내용, 지역 필수 입력</p>
+            <Dropzone onFilesAdded={handleFilesAdded} />
             {errors.files && (
               <p className="text-red-500 text-xs mt-2">
                 이미지를 업로드 해주세요.
@@ -218,7 +240,11 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
             <select
               id="region"
               name="region"
-              className="block appearance-none w-full bg-white border border-gray-200 hover:border-gray-500 px-4 py-2 pr-8 rounded leading-tight focus:outline-none focus:shadow-outline"
+              className={`block appearance-none w-full bg-white border border-gray-200 px-4 py-2 pr-8 rounded leading-tight focus:outline-none focus:shadow-outline ${
+                errors.region ? "border-red-500" : ""
+              }`}
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
             >
               <option value="">지역 선택</option>
               <option value="TK">도쿄</option>
@@ -232,6 +258,9 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
               <option value="NG">나가사키</option>
               <option value="TM">다카마쓰</option>
             </select>
+            {errors.region && (
+              <p className="text-red-500 text-xs mt-2">지역을 선택해주세요.</p>
+            )}
           </div>
           <div className="flex gap-2">
             <Input type="date" name="date1" label="날짜 1" />
@@ -333,7 +362,7 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
             </div>
           )}
           <div className="flex items-center justify-between mt-4">
-            <Button content="게시" type="primary" />
+            <Button content="게시" type="primary" isSubmitting={isSubmitting} />
           </div>
         </form>
       </div>

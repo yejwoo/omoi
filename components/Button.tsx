@@ -5,9 +5,10 @@ interface ButtonProps {
   content: string;
   type: "primary" | "secondary";
   onClick?: () => void;
+  isSubmitting: boolean;
 }
 
-const Button: React.FC<ButtonProps> = ({ content, type, onClick}) => {
+const Button: React.FC<ButtonProps> = ({ content, type, onClick, isSubmitting=false}) => {
   const { pending } = useFormStatus();
   const buttonType =
     type === "primary"
@@ -17,10 +18,10 @@ const Button: React.FC<ButtonProps> = ({ content, type, onClick}) => {
     <button
       type="submit"
       className={`w-full py-2 px-4 border rounded-md text-sm font-medium ${buttonType} disabled:bg-brand-50`}
-      disabled={pending}
+      disabled={isSubmitting || pending}
       onClick={onClick}
     >
-      {pending ? "로딩 중..." : content}
+      {isSubmitting || pending ? "로딩 중" : content}
     </button>
   );
 };
