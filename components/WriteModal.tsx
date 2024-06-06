@@ -22,11 +22,11 @@ interface FileWithPreview extends FileWithPath {
 }
 
 const disableScroll = () => {
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow = "hidden";
 };
 
 const enableScroll = () => {
-  document.body.style.overflow = '';
+  document.body.style.overflow = "";
 };
 
 export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
@@ -35,18 +35,20 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [selectedTag1, setSelectedTag1] = useState<string>("");
   const [selectedTag2, setSelectedTag2] = useState<string[]>([]);
+  const [content, setContent] = useState<string>("");
+  const [errors, setErrors] = useState<{ content: boolean; files: boolean }>({
+    content: false,
+    files: false,
+  });
   const modalRef = useRef<HTMLDivElement>(null);
 
-  function fileToBlob(file: FileWithPreview): Promise<Blob> {
-    return fetch(file.preview).then((res) => res.blob());
-  }
-
   useEffect(() => {
+    // 유저 세션 데이터 패칭
     const fetchSession = async () => {
       if (session) {
         // @TODO: 네이버 이메일 유저 정보 및 아이디 저장
         // if (session.user && session.user?.name) {
-          // setUserId(session.user?.name);
+        // setUserId(session.user?.name);
         // }
       } else {
         const emailSession = await getSession();
@@ -64,8 +66,12 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
       enableScroll();
     }
 
+    // 모달 바깥 클릭시 모달 창 끄기
     const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
         onClose();
       }
     };
@@ -81,6 +87,11 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen, session, onClose]);
+
+  // 파일 업로드
+  function fileToBlob(file: FileWithPreview): Promise<Blob> {
+    return fetch(file.preview).then((res) => res.blob());
+  }
 
   const handleFilesAdded = async (files: FileWithPreview[]) => {
     const blobs = await Promise.all(files.map(fileToBlob));
@@ -111,30 +122,56 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget as HTMLFormElement);
-    formData.set("tags1", selectedTag1);
-    formData.set("tags2", selectedTag2.join(","));
-    const response = await fetch("/api/posts", {
-      method: "POST",
-      body: JSON.stringify(Object.fromEntries(formData)),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const result = await response.json();
-    if (result.success) {
-      onSubmit(); // 모달 닫기
-      window.location.href = result.redirectUrl; // 홈으로 리다이렉트
-    } else {
-      console.error("Failed to create post:", result.errors);
+
+    const newErrors = {
+      content: content.trim() === "",
+      files: uploadedFiles.length === 0,
+    };
+
+    setErrors(newErrors);
+
+    if (!newErrors.content && !newErrors.files) {
+      const formData = new FormData(e.currentTarget as HTMLFormElement);
+      formData.set("tags1", selectedTag1);
+      formData.set("tags2", selectedTag2.join(","));
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        body: JSON.stringify(Object.fromEntries(formData)),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const result = await response.json();
+      if (result.success) {
+        onSubmit(); // 모달 닫기
+        window.location.href = result.redirectUrl; // 홈으로 리다이렉트
+      } else {
+        console.error("Failed to create post:", result.errors);
+      }
     }
   };
+
+  // 실시간 에러메시지 삭제
+  useEffect(() => {
+    if (content !== "") {
+      setErrors((prevErrors) => ({ ...prevErrors, content: false }));
+    }
+  }, [content]);
+
+  useEffect(() => {
+    if (uploadedFiles.length > 0) {
+      setErrors((prevErrors) => ({ ...prevErrors, files: false }));
+    }
+  }, [uploadedFiles]);
 
   if (!isOpen) return null;
 
   return (
     <main className="fixed flex justify-center items-center inset-0 bg-black bg-opacity-50 overflow-auto h-full">
-      <div ref={modalRef} className="bg-white shadow-md px-8 pt-6 pb-8 flex flex-col w-full max-h-screen overflow-y-auto sm:w-[640px] sm:h-auto sm:rounded sm:h-[902px]">
+      <div
+        ref={modalRef}
+        className="bg-white shadow-md px-8 pt-6 pb-8 flex flex-col w-full max-h-screen overflow-y-auto sm:w-[640px] sm:h-auto sm:rounded sm:h-[902px]"
+      >
         <form onSubmit={handleSubmit}>
           <input id="hiddenFiles" name="files" type="hidden" />
           <div className="mb-4">
@@ -146,15 +183,29 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
               alt="close"
               onClick={onClose}
             />
-            <Dropzone onFilesAdded={handleFilesAdded} />
+            <Dropzone
+              onFilesAdded={handleFilesAdded}
+            />
+            {errors.files && (
+              <p className="text-red-500 text-xs mt-2">
+                이미지를 업로드 해주세요.
+              </p>
+            )}
           </div>
           <div className="mb-4">
             <textarea
               id="content"
               name="content"
-              className="bg-gray-50 resize-none appearance-none w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-56 rounded-md"
+              className={`bg-gray-50 resize-none appearance-none w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-56 rounded-md ${
+                errors.content ? "border-red-500" : ""
+              }`}
               placeholder="내용을 입력하세요."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
             />
+            {errors.content && (
+              <p className="text-red-500 text-xs mt-2">내용을 입력해주세요.</p>
+            )}
           </div>
           {/* 지역 */}
           <div className="mb-4">
@@ -169,7 +220,7 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
               name="region"
               className="block appearance-none w-full bg-white border border-gray-200 hover:border-gray-500 px-4 py-2 pr-8 rounded leading-tight focus:outline-none focus:shadow-outline"
             >
-              <option>지역 선택</option>
+              <option value="">지역 선택</option>
               <option value="TK">도쿄</option>
               <option value="FK">후쿠오카</option>
               <option value="OS">오사카</option>
