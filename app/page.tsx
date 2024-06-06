@@ -24,19 +24,6 @@ export default function Home() {
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const observer = useRef<IntersectionObserver | null>(null);
-  const [emailSession, setEmailSession] = useState(defaultSession);
-
-  useEffect(() => {
-    const fetchSession = async () => {
-      const emailSession = await getSession();
-      setEmailSession(emailSession);
-    };
-
-    fetchSession();
-    if (!emailSession.isLoggedIn) {
-      redirect("/signin");
-    }
-  }, []);
 
   const fetchPosts = useCallback(async (page: number, initialLoad = false) => {
     setIsLoading(true);
