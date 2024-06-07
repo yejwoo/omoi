@@ -31,11 +31,14 @@ export default function Post({ post }: { post: IPost }) {
   const [showPostModal, setShowPostModal] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<number>(0);
   const [openCommentModalId, setOpenCommentModalId] = useState<number>(0);
+  const [editingPostId, setEditingPostId] = useState<number>(0);
+  const [openPostModalId, setOpenPostModalId] = useState<number>(0);
   const [commentValues, setCommentValues] = useState<Record<number, string>>(
     {}
   );
 
   const commentRefs = useRef<(HTMLUListElement | null)[]>([]);
+  const postRefs = useRef<(HTMLUListElement | null)[]>([]);
 
   // 댓글 모달 바깥 클릭시 모달 끄기
   useEffect(() => {
@@ -270,6 +273,7 @@ export default function Post({ post }: { post: IPost }) {
     }
   };
 
+  // 코멘트 모달
   const handleCommentModal = useCallback(
     (id: number) => {
       // console.log(`handleCommentModal called with id: ${id}`);
@@ -284,6 +288,49 @@ export default function Post({ post }: { post: IPost }) {
   const handleEditCommentId = (id: number) => {
     setEditingCommentId((prevId) => (prevId === id ? 0 : id));
     setShowCommentModal(!showCommentModal);
+  };
+
+  // 포스트 모달
+  const handlePostModal = useCallback(
+    (id: number) => {
+      console.log(`handlePostModal called with id: ${id}`);
+      setOpenPostModalId((prevId) => (prevId === id ? 0 : id));
+      setShowPostModal((prevShow) =>
+        prevShow && openPostModalId === id ? false : true
+      );
+    },
+    [openPostModalId]
+  );
+
+  const handleEditPostId = (id: number) => {
+    setEditingPostId((prevId) => (prevId === id ? 0 : id));
+    setShowPostModal(!showPostModal);
+  };
+
+  // 포스트 삭제 DELETE
+  const handleDeletePost = async (postId: number) => {
+    if (confirm("정말 삭제하시겠습니까?")) {
+      try {
+        const response = await fetch(`/api/posts/${postId}`, {
+          method: "DELETE",
+          body: JSON.stringify({
+            id: postId,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to delete post.");
+        }
+
+        const result = await response.json();
+        console.log("포스트 삭제: ", result.id);
+      } catch (error) {
+        console.error("Failed to delete post.", error);
+      }
+    }
   };
 
   return (
@@ -306,10 +353,11 @@ export default function Post({ post }: { post: IPost }) {
             )}
             <span className="font-semibold">{post.user.username}</span>
           </div>
+          {/* 포스트 모달 (수정, 삭제, 링크 공유 등) */}
           <div className="relative">
             <button
               onClick={() => {
-                setShowPostModal(!showPostModal);
+                handlePostModal(post.id);
               }}
             >
               <Image
@@ -323,12 +371,15 @@ export default function Post({ post }: { post: IPost }) {
               className={`w-28 border border-gray-200 bg-white shadow-md rounded-md absolute z-10 right-0 ${
                 showPostModal ? "" : "hidden"
               }`}
+              // ref={(el) => {
+              //   postRefs.current[index] = el;
+              // }}
             >
               {post.userId == userId && (
                 <>
                   <li
                     className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-t-md flex text-gray-500"
-                    onClick={() => handleEditCommentId(comment.id)}
+                    onClick={() => handleEditPostId(post.id)}
                   >
                     <span className="flex-grow text-sm text-gray-500">
                       수정
@@ -342,14 +393,11 @@ export default function Post({ post }: { post: IPost }) {
                   </li>
                   <li
                     className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-b-md flex text-gray-500"
-                    onClick={() => handleDeleteComment(comment.id)}
+                    onClick={() => handleDeletePost(post.id)}
                   >
-                    <span className="flex-grow text-sm">
-                      삭제
-                    </span>
+                    <span className="flex-grow text-sm">삭제</span>
                     <Image
                       src="/icons/delete.svg"
-                      
                       alt="삭제"
                       width={16}
                       height={16}
@@ -359,11 +407,9 @@ export default function Post({ post }: { post: IPost }) {
               )}
               <li
                 className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-b-md flex text-gray-500"
-                onClick={() => handleDeleteComment(comment.id)}
+                // @TODO: 링크 복사 클릭 이벤트 추가
               >
-                <span className="flex-grow text-sm">
-                  링크 복사
-                </span>
+                <span className="flex-grow text-sm">링크 복사</span>
                 <Image
                   src="/icons/link.svg"
                   alt="url 복사"
