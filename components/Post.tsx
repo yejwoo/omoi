@@ -30,6 +30,7 @@ export default function Post({ post }: { post: IPost }) {
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [showPostModal, setShowPostModal] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<number>(0);
+  const [replyCommentId, setReplyCommentId] = useState<number>(0);
   const [openCommentModalId, setOpenCommentModalId] = useState<number>(0);
   const [editingPostId, setEditingPostId] = useState<number>(0);
   const [openPostModalId, setOpenPostModalId] = useState<number>(0);
@@ -91,16 +92,13 @@ export default function Post({ post }: { post: IPost }) {
         setLiked(!liked);
         setLikeCount((prevCount) => (liked ? prevCount - 1 : prevCount + 1));
 
-        const response = await fetch(
-          `/api/posts/${post.id}/likes/${userId}`,
-          {
-            method: liked ? "DELETE" : "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ userId }),
-          }
-        );
+        const response = await fetch(`/api/posts/${post.id}/likes/${userId}`, {
+          method: liked ? "DELETE" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId }),
+        });
 
         if (!response.ok) {
           throw new Error("Failed to update like.");
@@ -119,15 +117,12 @@ export default function Post({ post }: { post: IPost }) {
     // 좋아요 상태 및 개수 가져오기
     const fetchLikes = async () => {
       try {
-        const response = await fetch(
-          `/api/posts/${post.id}/likes/${userId}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await fetch(`/api/posts/${post.id}/likes/${userId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
         if (response.ok) {
           const data = await response.json();
@@ -333,6 +328,10 @@ export default function Post({ post }: { post: IPost }) {
     }
   };
 
+  const handleReplyComment = (commentId: number) => {
+    console.log("답글을 달 댓글의 아이디", commentId);
+  };
+
   return (
     <>
       <header className="p-5">
@@ -533,56 +532,74 @@ export default function Post({ post }: { post: IPost }) {
                   </div>
                 )}
                 {/* 날짜 & 더보기 모달 */}
-                {comment.userId === emailSession.id && (
-                  <div className="relative flex items-center gap-2">
-                    <span className="text-xs">
-                      {formatDate(comment.createdAt)}
-                    </span>
-                    <button onClick={() => handleCommentModal(comment.id)}>
-                      <Image
-                        src="/icons/more.svg"
-                        alt="더보기"
-                        width={20}
-                        height={20}
-                      />
-                    </button>
-                    <ul
-                      className={`w-20 border border-gray-200 bg-white shadow-md rounded-md absolute left-16 top-6 z-10 ${
-                        showCommentModal && openCommentModalId === comment.id
-                          ? "block"
-                          : "hidden"
-                      } `}
-                      ref={(el) => {
-                        commentRefs.current[index] = el;
-                      }}
-                    >
+                <div className="relative flex items-center gap-2">
+                  <span className="text-xs">
+                    {formatDate(comment.createdAt)}
+                  </span>
+                  <button
+                    onClick={() => handleCommentModal(comment.id)}
+                  >
+                    <Image
+                      src="/icons/more.svg"
+                      alt="더보기"
+                      width={20}
+                      height={20}
+                    />
+                  </button>
+                  <ul
+                    className={`w-20 border border-gray-200 bg-white shadow-md rounded-md absolute left-16 top-6 z-10 ${
+                      showCommentModal && openCommentModalId === comment.id
+                        ? "block"
+                        : "hidden"
+                    } `}
+                    ref={(el) => {
+                      commentRefs.current[index] = el;
+                    }}
+                  >
+                    {/* 본인 댓글 수정 & 삭제 */}
+                    {comment.userId === emailSession.id ? (
+                      <>
+                        <li
+                          className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-t-md flex text-gray-500"
+                          onClick={() => handleEditCommentId(comment.id)}
+                        >
+                          <span className="flex-grow text-gray-500">수정</span>
+                          <Image
+                            src="/icons/edit.svg"
+                            alt="편집"
+                            width={16}
+                            height={16}
+                          />
+                        </li>
+                        <li
+                          className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-b-md flex text-gray-500"
+                          onClick={() => handleDeleteComment(comment.id)}
+                        >
+                          <span className="flex-grow text-gray-500">삭제</span>
+                          <Image
+                            src="/icons/delete.svg"
+                            alt="삭제"
+                            width={16}
+                            height={16}
+                          />
+                        </li>
+                      </>
+                    ) : (
                       <li
                         className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-t-md flex"
-                        onClick={() => handleEditCommentId(comment.id)}
+                        onClick={() => handleReplyComment(comment.id)}
                       >
-                        <span className="flex-grow">수정</span>
+                        <span className="flex-grow">답글</span>
                         <Image
-                          src="/icons/edit.svg"
-                          alt="편집"
+                          src="/icons/reply.svg"
+                          alt="답글"
                           width={16}
                           height={16}
                         />
                       </li>
-                      <li
-                        className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-b-md flex"
-                        onClick={() => handleDeleteComment(comment.id)}
-                      >
-                        <span className="flex-grow">삭제</span>
-                        <Image
-                          src="/icons/delete.svg"
-                          alt="삭제"
-                          width={16}
-                          height={16}
-                        />
-                      </li>
-                    </ul>
-                  </div>
-                )}
+                    )}
+                  </ul>
+                </div>
               </div>
             ))
           ) : (
