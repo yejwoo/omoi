@@ -115,7 +115,8 @@ export default async function handler(
           comments: true,
         },
         where: {
-          postStatus: "public"
+          postStatus: "public",
+          deletedAt: null,
         },
         orderBy: {
           createdAt: "desc",
