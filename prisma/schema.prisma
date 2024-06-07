@@ -19,6 +19,7 @@ model User {
   posts                Post[]
   likes                Like[]
   profile              String?
+  replyComments        ReplyComment[]
   createdAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
   updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0) @updatedAt
   deletedAt DateTime? 
@@ -66,6 +67,7 @@ model Comment {
   createdAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
   updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0) @updatedAt
   deletedAt DateTime? 
+  replies   ReplyComment[]
 }
 
 model Like {
@@ -77,3 +79,16 @@ model Like {
   createdAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
   @@unique([userId, postId])
 }
+
+model ReplyComment {
+  id         Int       @id @default(autoincrement())
+  commentId  Int       
+  content    String
+  userId     Int       
+  comment    Comment   @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
+  updatedAt  DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0) @updatedAt
+  deletedAt  DateTime?
+}
+
