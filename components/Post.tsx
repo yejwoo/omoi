@@ -92,7 +92,7 @@ export default function Post({ post }: { post: IPost }) {
         setLikeCount((prevCount) => (liked ? prevCount - 1 : prevCount + 1));
 
         const response = await fetch(
-          `/api/posts/${post.id}/like?userId=${userId}`,
+          `/api/posts/${post.id}/likes/${userId}`,
           {
             method: liked ? "DELETE" : "POST",
             headers: {
@@ -120,7 +120,7 @@ export default function Post({ post }: { post: IPost }) {
     const fetchLikes = async () => {
       try {
         const response = await fetch(
-          `/api/posts/${post.id}/like?userId=${userId}`,
+          `/api/posts/${post.id}/likes/${userId}`,
           {
             method: "GET",
             headers: {
