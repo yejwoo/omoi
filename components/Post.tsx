@@ -28,6 +28,7 @@ export default function Post({ post }: { post: IPost }) {
 
   // 버튼 클릭
   const [showCommentModal, setShowCommentModal] = useState(false);
+  const [showPostModal, setShowPostModal] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<number>(0);
   const [openCommentModalId, setOpenCommentModalId] = useState<number>(0);
   const [commentValues, setCommentValues] = useState<Record<number, string>>(
@@ -288,21 +289,93 @@ export default function Post({ post }: { post: IPost }) {
   return (
     <>
       <header className="p-5">
-        <div className="flex items-center space-x-3">
-          {post.user.profile ? (
-            <div className="relative w-10 h-10 rounded-full flex-shrink-0">
+        <div className="flex items-center justify-between">
+          {/* 프로필 & 닉네임 */}
+          <div className="flex gap-2 items-center">
+            {post.user.profile ? (
+              <div className="relative w-10 h-10 rounded-full flex-shrink-0">
+                <Image
+                  src={post.user.profile}
+                  fill
+                  className="object-cover rounded-full"
+                  alt="profile"
+                />
+              </div>
+            ) : (
+              <div className="inline-block w-10 h-10 bg-gray-300 rounded-full"></div>
+            )}
+            <span className="font-semibold">{post.user.username}</span>
+          </div>
+          <div className="relative">
+            <button
+              onClick={() => {
+                setShowPostModal(!showPostModal);
+              }}
+            >
               <Image
-                src={post.user.profile}
-                fill
-                className="object-cover rounded-full"
-                alt="profile"
+                src="/icons/more.svg"
+                alt="더보기"
+                width={20}
+                height={20}
               />
-            </div>
-          ) : (
-            <div className="inline-block w-10 h-10 bg-gray-300 rounded-full"></div>
-          )}
-          <span className="font-semibold">{post.user.username}</span>
+            </button>
+            <ul
+              className={`w-28 border border-gray-200 bg-white shadow-md rounded-md absolute z-10 right-0 ${
+                showPostModal ? "" : "hidden"
+              }`}
+            >
+              {post.userId == userId && (
+                <>
+                  <li
+                    className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-t-md flex text-gray-500"
+                    onClick={() => handleEditCommentId(comment.id)}
+                  >
+                    <span className="flex-grow text-sm text-gray-500">
+                      수정
+                    </span>
+                    <Image
+                      src="/icons/edit.svg"
+                      alt="편집"
+                      width={16}
+                      height={16}
+                    />
+                  </li>
+                  <li
+                    className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-b-md flex text-gray-500"
+                    onClick={() => handleDeleteComment(comment.id)}
+                  >
+                    <span className="flex-grow text-sm">
+                      삭제
+                    </span>
+                    <Image
+                      src="/icons/delete.svg"
+                      
+                      alt="삭제"
+                      width={16}
+                      height={16}
+                    />
+                  </li>
+                </>
+              )}
+              <li
+                className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-b-md flex text-gray-500"
+                onClick={() => handleDeleteComment(comment.id)}
+              >
+                <span className="flex-grow text-sm">
+                  링크 복사
+                </span>
+                <Image
+                  src="/icons/link.svg"
+                  alt="url 복사"
+                  className="text-gray-600"
+                  width={16}
+                  height={16}
+                />
+              </li>
+            </ul>
+          </div>
         </div>
+        {/* 태그 */}
         {(post.tags1 || post.tags2) && (
           <div className="flex gap-1 mt-3">
             {post.tags1 && (
@@ -325,9 +398,9 @@ export default function Post({ post }: { post: IPost }) {
           </div>
         )}
       </header>
-
+      {/* 이미지 */}
       {post.images.length > 0 && <ImageCarousel images={post.images} />}
-
+      {/* 좋아요 */}
       <div className="p-5">
         <button
           type="button"
@@ -353,7 +426,9 @@ export default function Post({ post }: { post: IPost }) {
           </span>
           {likeCount}
         </button>
+        {/* 내용 */}
         <p className="mt-2 text-sm text-gray-700">{post.content}</p>
+        {/* 댓글 */}
         <div className="text-xs text-gray-400 mt-2">
           {comments.length > 0 ? (
             comments.map((comment, index) => (
