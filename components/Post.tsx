@@ -220,7 +220,6 @@ export default function Post({ post }: { post: IPost }) {
       const response = await fetch(`/api/comment/${commentId}`, {
         method: "PUT",
         body: JSON.stringify({
-          id: commentId,
           content: commentValues[commentId],
         }),
         headers: {
@@ -247,9 +246,6 @@ export default function Post({ post }: { post: IPost }) {
       try {
         const response = await fetch(`/api/comment/${commentId}`, {
           method: "DELETE",
-          body: JSON.stringify({
-            id: commentId,
-          }),
           headers: {
             "Content-Type": "application/json",
           },
