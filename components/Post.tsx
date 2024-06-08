@@ -10,6 +10,7 @@ import debounce from "@/lib/debounce";
 import formatDate from "@/lib/formatDate";
 import useClickOutside from "@/app/hooks/useClickOutside";
 import useUserProfile from "@/app/hooks/useUserProfile";
+import formatText from "@/lib/formatText";
 
 export default function Post({ post }: { post: IPost }) {
   // 유저 정보
@@ -528,7 +529,7 @@ export default function Post({ post }: { post: IPost }) {
                       </span>
                     </div>
                     {/* 댓글 내용 */}
-                    <span className="text-gray-500">{comment.content}</span>
+                    <span className="text-gray-500">{formatText(comment.content)}</span>
                   </div>
                 )}
                 {/* 날짜 & 더보기 모달 */}
