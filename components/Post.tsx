@@ -473,7 +473,7 @@ export default function Post({ post }: { post: IPost }) {
           {likeCount}
         </button>
         {/* 내용 */}
-        <p className="mt-2 text-sm text-gray-700">{post.content}</p>
+        <p className="mt-2 text-sm text-gray-700">{formatText(post.content)}</p>
         {/* 댓글 */}
         <div className="text-xs text-gray-400 mt-2">
           {comments.length > 0 ? (
