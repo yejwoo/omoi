@@ -12,7 +12,7 @@ import useClickOutside from "@/app/hooks/useClickOutside";
 import useUserProfile from "@/app/hooks/useUserProfile";
 import formatText from "@/lib/formatText";
 import { getTagName, getTagNames } from "@/lib/getTagNames";
-
+import SendIcon from "@/public/icons/sendIcon";
 
 export default function Post({ post }: { post: IPost }) {
   // 유저 정보
@@ -28,6 +28,7 @@ export default function Post({ post }: { post: IPost }) {
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState<IComments[]>([]);
   const [disableBtn, setDisableBtn] = useState(true);
+  const [isReply, setIsReply] = useState(false);
 
   // 버튼 클릭
   const [showCommentModal, setShowCommentModal] = useState(false);
@@ -63,13 +64,13 @@ export default function Post({ post }: { post: IPost }) {
     };
   }, [comments, openCommentModalId]);
 
-
   // 댓글 실시간 작성 감지
   const handleChangeComment = async (
     e: React.ChangeEvent<HTMLTextAreaElement>
   ) => {
     const value = e.target.value;
     setComment(value);
+    // console.log("작성 중인 댓글",  value)
   };
 
   useEffect(() => {
@@ -147,10 +148,22 @@ export default function Post({ post }: { post: IPost }) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget as HTMLFormElement);
 
+    let content = formData.get("content") as string;
+    if (isReply) {
+      const match = content.match(/^@\S+\s+/);
+      if (match) {
+        content = content.substring(match[0].length);
+      }
+    }
+
     try {
-      const response = await fetch(`/api/posts/${post.id}/comments`, {
+      const url = isReply
+        ? `/api/posts/${post.id}/comments/${replyCommentId}/replies`
+        : `/api/posts/${post.id}/comments`;
+
+      const response = await fetch(url, {
         method: "POST",
-        body: JSON.stringify(Object.fromEntries(formData)),
+        body: JSON.stringify({ content }),
         headers: {
           "Content-Type": "application/json",
         },
@@ -161,8 +174,10 @@ export default function Post({ post }: { post: IPost }) {
       }
 
       const result = await response.json();
-      console.log("댓글: ", result);
+      console.log("답글: ", result);
       setComment("");
+      setIsReply(false);
+      setReplyCommentId(0);
       await fetchComments();
     } catch (error) {
       console.error("Failed to create comment.", error);
@@ -314,7 +329,9 @@ export default function Post({ post }: { post: IPost }) {
   };
 
   const handleReplyComment = (commentId: number, username: string) => {
-    const newComment = `@${username} ${commentId} `;
+    const newComment = `@${username} `;
+    setIsReply(true);
+    setReplyCommentId(commentId);
     setComment(newComment);
   };
 
@@ -611,10 +628,10 @@ export default function Post({ post }: { post: IPost }) {
         <button
           id="submitBtn"
           type="submit"
-          className="disabled:text-gray-300 text-brand-200 font-semibold"
+          className={`font-semibold ${disableBtn ? 'text-gray-300' : 'text-brand-200'}`}
           disabled={disableBtn}
         >
-          Post
+          <SendIcon className={`transition-colors duration-200 ${disableBtn ? 'text-gray-300' : 'text-brand-200'}`} />
         </button>
       </form>
     </>
