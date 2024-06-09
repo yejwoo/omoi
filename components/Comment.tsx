@@ -95,7 +95,11 @@ const Comment: React.FC<CommentProps> = ({ postId, userId, emailSession }) => {
 
       const response = await fetch(url, {
         method: "POST",
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({
+          content,
+          postId: postId.toString(),
+          userId: userId.toString(),
+        }),
         headers: {
           "Content-Type": "application/json",
         },
@@ -325,7 +329,7 @@ const Comment: React.FC<CommentProps> = ({ postId, userId, emailSession }) => {
         )}
       </div>
       <form
-        className="border-gray-200 py-3 flex max-h-20"
+        className="border-gray-200 p-3 flex max-h-20"
         onSubmit={handleComment}
       >
         <textarea

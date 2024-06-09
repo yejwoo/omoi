@@ -12,6 +12,7 @@ import formatText from "@/lib/formatText";
 import { getTagName, getTagNames } from "@/lib/getTagNames";
 import Comment from "@/components/Comment";
 import { animated, useSpring } from "@react-spring/web";
+import Modal from "./Modal";
 
 export default function Post({ post }: { post: IPost }) {
   // 유저 정보
@@ -28,6 +29,7 @@ export default function Post({ post }: { post: IPost }) {
   const [commentCount, setCommentCount] = useState(0);
 
   // 버튼 클릭
+  const [showModal, setShowModal] = useState(false);
   const [showPostModal, setShowPostModal] = useState(false);
   const [editingPostId, setEditingPostId] = useState<number>(0);
   const [openPostModalId, setOpenPostModalId] = useState<number>(0);
@@ -148,6 +150,15 @@ export default function Post({ post }: { post: IPost }) {
     transform: animate ? "scale(1.2)" : "scale(1)",
   });
 
+  // 모달 열기/닫기 함수 추가
+  const openCommentModal = () => {
+    setShowModal(true);
+  };
+
+  const closeCommentModal = () => {
+    setShowModal(false);
+  };
+
   return (
     <>
       <header className="p-5">
@@ -253,6 +264,10 @@ export default function Post({ post }: { post: IPost }) {
       </header>
       {/* 이미지 */}
       {post.images.length > 0 && <ImageCarousel images={post.images} />}
+      {/* 게시글 내용 */}
+      <p className="p-5 border-b text-sm text-gray-700">
+        {formatText(post.content)}
+      </p>
       <div className="p-5">
         {/* 좋아요, 댓글 버튼 */}
         <div className="flex gap-4">
@@ -286,22 +301,35 @@ export default function Post({ post }: { post: IPost }) {
           <button
             type="button"
             className="text-gray-500 flex items-center gap-2"
-            onClick={handleLike}
+            onClick={openCommentModal}
           >
-              <Image
-                src="/icons/talk-bubble.svg"
-                alt="댓글"
-                width={24}
-                height={24}
-              />
+            <Image
+              src="/icons/talk-bubble.svg"
+              alt="댓글"
+              width={24}
+              height={24}
+            />
             <span className="text-sm">{post.commentCount}</span>
           </button>
         </div>
-        {/* 게시글 내용 */}
-        <p className="mt-3 text-sm text-gray-700">{formatText(post.content)}</p>
-        {/* 댓글 */}
-        <Comment postId={post.id} userId={userId} emailSession={emailSession} />
       </div>
+      <Modal isOpen={showModal} onClose={closeCommentModal}>
+        <div className="flex overflow-hidden h-full">
+          <div className="w-1/2">
+            <ImageCarousel images={post.images} />
+          </div>
+          <div className="w-1/2 p-4 overflow-y-auto h-full no-scrollbar">
+            <p className="border-b pb-4 text-sm text-gray-700">
+              {formatText(post.content)}
+            </p>
+            <Comment
+              postId={post.id}
+              userId={userId}
+              emailSession={emailSession}
+            />
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }
