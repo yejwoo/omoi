@@ -169,17 +169,6 @@ export default function Post({ post }: { post: IPost }) {
     }
   };
 
-  // 댓글 실시간 작성 감지
-  const handleChangeComment = async (
-    e: React.ChangeEvent<HTMLTextAreaElement>
-  ) => {
-    setComment(e.target.value);
-    setDisableBtn(true);
-    if (e.target.value.length > 0) {
-      setDisableBtn(false);
-    }
-  };
-
   // 댓글 조회 GET
   const fetchComments = async () => {
     try {
@@ -324,9 +313,14 @@ export default function Post({ post }: { post: IPost }) {
     }
   };
 
-  const handleReplyComment = (commentId: number) => {
-    console.log("답글을 달 댓글의 아이디", commentId);
+  const handleReplyComment = (commentId: number, username: string) => {
+    const newComment = `@${username} ${commentId} `;
+    setComment(newComment);
   };
+
+  useEffect(() => {
+    setDisableBtn(comment.length === 0);
+  }, [comment]);
 
   return (
     <>
@@ -524,7 +518,9 @@ export default function Post({ post }: { post: IPost }) {
                       </span>
                     </div>
                     {/* 댓글 내용 */}
-                    <span className="text-gray-500">{formatText(comment.content)}</span>
+                    <span className="text-gray-500">
+                      {formatText(comment.content)}
+                    </span>
                   </div>
                 )}
                 {/* 날짜 & 더보기 모달 */}
@@ -533,28 +529,35 @@ export default function Post({ post }: { post: IPost }) {
                     {formatDate(comment.createdAt)}
                   </span>
                   <button
-                    onClick={() => handleCommentModal(comment.id)}
+                    className="text-gray-600 cursor-pointer"
+                    type="button"
+                    onClick={() =>
+                      handleReplyComment(comment.id, comment.user.username)
+                    }
                   >
-                    <Image
-                      src="/icons/more.svg"
-                      alt="더보기"
-                      width={20}
-                      height={20}
-                    />
+                    답글
                   </button>
-                  <ul
-                    className={`w-20 border border-gray-200 bg-white shadow-md rounded-md absolute left-16 top-6 z-10 ${
-                      showCommentModal && openCommentModalId === comment.id
-                        ? "block"
-                        : "hidden"
-                    } `}
-                    ref={(el) => {
-                      commentRefs.current[index] = el;
-                    }}
-                  >
-                    {/* 본인 댓글 수정 & 삭제 */}
-                    {comment.userId === emailSession.id ? (
-                      <>
+                  <div className="relative h-5">
+                    <button onClick={() => handleCommentModal(comment.id)}>
+                      <Image
+                        src="/icons/more.svg"
+                        alt="더보기"
+                        width={20}
+                        height={20}
+                      />
+                    </button>
+                    <ul
+                      className={`w-20 border border-gray-200 bg-white shadow-md rounded-md absolute right-0 z-10 ${
+                        showCommentModal && openCommentModalId === comment.id
+                          ? "block"
+                          : "hidden"
+                      } `}
+                      ref={(el) => {
+                        commentRefs.current[index] = el;
+                      }}
+                    >
+                      {/* 댓글 수정 & 삭제 */}
+                      {comment.userId === emailSession.id && (
                         <li
                           className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-t-md flex text-gray-500"
                           onClick={() => handleEditCommentId(comment.id)}
@@ -567,34 +570,21 @@ export default function Post({ post }: { post: IPost }) {
                             height={16}
                           />
                         </li>
-                        <li
-                          className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-b-md flex text-gray-500"
-                          onClick={() => handleDeleteComment(comment.id)}
-                        >
-                          <span className="flex-grow text-gray-500">삭제</span>
-                          <Image
-                            src="/icons/delete.svg"
-                            alt="삭제"
-                            width={16}
-                            height={16}
-                          />
-                        </li>
-                      </>
-                    ) : (
+                      )}
                       <li
-                        className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-t-md flex"
-                        onClick={() => handleReplyComment(comment.id)}
+                        className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-b-md flex text-gray-500"
+                        onClick={() => handleDeleteComment(comment.id)}
                       >
-                        <span className="flex-grow">답글</span>
+                        <span className="flex-grow text-gray-500">삭제</span>
                         <Image
-                          src="/icons/reply.svg"
-                          alt="답글"
+                          src="/icons/delete.svg"
+                          alt="삭제"
                           width={16}
                           height={16}
                         />
                       </li>
-                    )}
-                  </ul>
+                    </ul>
+                  </div>
                 </div>
               </div>
             ))
