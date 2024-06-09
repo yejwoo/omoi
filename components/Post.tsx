@@ -177,6 +177,7 @@ export default function Post({ post }: { post: IPost }) {
               <div className="inline-block w-10 h-10 bg-gray-300 rounded-full"></div>
             )}
             <span className="font-semibold">{post.user.username}</span>
+            <span className="text-sm text-gray-500">{formatDate(post.date)}</span>
           </div>
           <div className="relative">
             <button

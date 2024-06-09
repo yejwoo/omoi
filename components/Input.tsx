@@ -13,8 +13,10 @@ export default function Input({
 }: InputProps & InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div>
-      <label htmlFor={name} className="text-sm font-medium text-gray-700">
+      <label htmlFor={name} className="text-sm font-bold text-gray-700">
+        <span className="text-brand-200">
         {props.required ? "* " : ""}
+        </span>
         {props.label}
       </label>
       <input

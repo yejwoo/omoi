@@ -37,6 +37,7 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
   const [selectedTag2, setSelectedTag2] = useState<string[]>([]);
   const [content, setContent] = useState<string>("");
   const [region, setRegion] = useState<string>("");
+  const [date, setDate] = useState<string>("");
   const [errors, setErrors] = useState<{
     content: boolean;
     region: boolean;
@@ -127,12 +128,18 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
     });
   };
 
+  const handleDate = (date: string) => {
+    const newDate = new Date(date).toISOString();
+    setDate(newDate);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget as HTMLFormElement);
     formData.set("tags1", selectedTag1);
     formData.set("tags2", selectedTag2.join(","));
+    formData.set("date", date);
 
     const newErrors = {
       content: content.trim() === "",
@@ -206,8 +213,10 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
               alt="close"
               onClick={onClose}
             />
-            <p className="text-xs mb-4">*이미지, 내용, 지역 필수 입력</p>
-            <Dropzone onFilesAdded={handleFilesAdded} />
+            <div className="flex gap-1">
+              <span className="text-brand-200">* </span>
+              <Dropzone onFilesAdded={handleFilesAdded} />
+            </div>
             {errors.files && (
               <p className="text-red-500 text-xs mt-2">
                 이미지를 업로드 해주세요.
@@ -235,7 +244,7 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
               className="block text-gray-700 text-sm font-bold mb-2"
               htmlFor="region"
             >
-              지역
+              <span className="text-brand-200">* </span>지역
             </label>
             <select
               id="region"
@@ -263,7 +272,13 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
             )}
           </div>
           <div className="flex gap-2">
-            <Input type="date" name="date" label="날짜" />
+            <Input
+              type="date"
+              name="date"
+              label="날짜"
+              required
+              onChange={(e) => handleDate(e.target.value)}
+            />
           </div>
           {/* 태그 */}
           <div className="mb-4">
