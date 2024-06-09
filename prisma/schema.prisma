@@ -78,14 +78,19 @@ model Like {
 }
 
 model ReplyComment {
-  id         Int       @id @default(autoincrement())
-  commentId  Int       
-  content    String
-  userId     Int       
-  comment    Comment   @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt  DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
-  updatedAt  DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0) @updatedAt
-  deletedAt  DateTime?
+  id            Int       @id @default(autoincrement())
+  commentId     Int       
+  content       String
+  userId        Int       
+  comment       Comment   @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentReplyId Int?      
+  parentReply   ReplyComment? @relation("ParentReply", fields: [parentReplyId], references: [id])
+  children      ReplyComment[] @relation("ParentReply")
+
+  createdAt     DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
+  updatedAt     DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0) @updatedAt
+  deletedAt     DateTime?
 }
+
 
