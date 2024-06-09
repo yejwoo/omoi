@@ -263,8 +263,7 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
             )}
           </div>
           <div className="flex gap-2">
-            <Input type="date" name="date1" label="날짜 1" />
-            <Input type="date" name="date2" label="날짜 2" />
+            <Input type="date" name="date" label="날짜" />
           </div>
           {/* 태그 */}
           <div className="mb-4">

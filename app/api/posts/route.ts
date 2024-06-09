@@ -5,8 +5,7 @@ import { z } from "zod";
 const postSchema = z.object({
   content: z.string().min(1, "내용을 작성해주세요."),
   region: z.string().min(1, "지역을 선택해주세요."),
-  date1: z.string().optional(),
-  date2: z.string().optional(),
+  date: z.string().optional(),
   tags1: z.string().optional(),
   tags2: z.string().optional(),
   userId: z.number().int(),
@@ -109,8 +108,7 @@ export async function POST(req: NextRequest) {
     const data = {
       content: formData.content,
       region: formData.region,
-      date1: formData.date1,
-      date2: formData.date2,
+      date: formData.date,
       tags1: formData.tags1,
       tags2: formData.tags2,
       userId: Number(formData.userId),
@@ -130,8 +128,7 @@ export async function POST(req: NextRequest) {
       data: {
         content: postData.content,
         region: postData.region,
-        date1: postData.date1 ? new Date(postData.date1) : null,
-        date2: postData.date2 ? new Date(postData.date2) : null,
+        date: postData.date,
         tags1: postData.tags1,
         tags2: postData.tags2,
         userId: postData.userId,

@@ -30,10 +30,7 @@ model Post {
   content   String
   images    Image[]
   region    String
-  latitude  Float?
-  longitude Float?
-  date1     DateTime? 
-  date2     DateTime? 
+  date      DateTime
   tags1     String?
   tags2     String?
   userId    Int
