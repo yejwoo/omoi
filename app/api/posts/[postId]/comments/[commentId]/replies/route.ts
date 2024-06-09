@@ -1,6 +1,5 @@
 import db from "@/lib/db";
 import { NextResponse } from "next/server";
-
 interface Params {
   postId?: string;
   commentId?: string;
@@ -23,13 +22,13 @@ export async function GET(request: Request, { params }: { params: Params }) {
         commentId: parseInt(commentId),
         deletedAt: null,
       },
-      select: {
-        id: true,
-        content: true,
-        userId: true,
-        commentId: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
+        user: {
+          select: {
+            profile: true,
+            username: true,
+          },
+        },
       },
     });
 
@@ -46,11 +45,11 @@ export async function GET(request: Request, { params }: { params: Params }) {
 export async function POST(request: Request, { params }: { params: Params }) {
   try {
     const { commentId } = params;
-    const { content } = await request.json();
+    const { content, parentReplyId, userId } = await request.json();
 
-    if (!commentId || !content) {
+    if (!commentId || !content || !userId) {
       return NextResponse.json(
-        { error: "commentId and content are required" },
+        { error: "commentId, content, userId fields are required" },
         { status: 400 }
       );
     }
@@ -59,13 +58,15 @@ export async function POST(request: Request, { params }: { params: Params }) {
       data: {
         content: content,
         commentId: parseInt(commentId),
-        userId: 1, // @TODO: 수정 필요
+        userId: parseInt(userId),
+        parentReplyId: parentReplyId ? parseInt(parentReplyId) : null,
       },
       select: {
         id: true,
         content: true,
         userId: true,
         commentId: true,
+        parentReplyId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -80,6 +81,7 @@ export async function POST(request: Request, { params }: { params: Params }) {
     );
   }
 }
+
 
 export async function PUT(request: Request, { params }: { params: Params }) {
   try {
@@ -135,7 +137,7 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
         deletedAt: new Date(),
       },
       select: {
-        id: true
+        id: true,
       },
     });
 
