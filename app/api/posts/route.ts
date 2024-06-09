@@ -32,7 +32,11 @@ export async function GET(req: NextRequest) {
         include: {
           images: true,
           user: true,
-          comments: true,
+          comments: {
+            include: {
+              replies: true,
+            },
+          },
         },
         where: {
           userId: Number(userId),
@@ -42,10 +46,18 @@ export async function GET(req: NextRequest) {
         },
       });
 
-      const postsWithCommentCount = posts.map(post => ({
-        ...post,
-        commentCount: post.comments.filter(comment => comment.deletedAt === null).length,
-      }));
+      const postsWithCommentCount = posts.map(post => {
+        const validComments = post.comments.filter(comment => comment.deletedAt === null);
+        const commentCount = validComments.reduce((count, comment) => {
+          const validReplies = comment.replies.filter(reply => reply.deletedAt === null);
+          return count + 1 + validReplies.length;
+        }, 0);
+
+        return {
+          ...post,
+          commentCount,
+        };
+      });
 
       return NextResponse.json({ posts: postsWithCommentCount });
     } catch (error) {
@@ -66,7 +78,11 @@ export async function GET(req: NextRequest) {
               profile: true,
             },
           },
-          comments: true,
+          comments: {
+            include: {
+              replies: true,
+            },
+          },
         },
         where: {
           postStatus: "public",
@@ -79,10 +95,18 @@ export async function GET(req: NextRequest) {
         take: limit,
       });
 
-      const postsWithCommentCount = posts.map(post => ({
-        ...post,
-        commentCount: post.comments.filter(comment => comment.deletedAt === null).length,
-      }));
+      const postsWithCommentCount = posts.map(post => {
+        const validComments = post.comments.filter(comment => comment.deletedAt === null);
+        const commentCount = validComments.reduce((count, comment) => {
+          const validReplies = comment.replies.filter(reply => reply.deletedAt === null);
+          return count + 1 + validReplies.length;
+        }, 0);
+
+        return {
+          ...post,
+          commentCount,
+        };
+      });
 
       const totalPosts = await db.post.count({
         where: {
@@ -99,7 +123,6 @@ export async function GET(req: NextRequest) {
     }
   }
 }
-
 
 export async function POST(req: NextRequest) {
   try {
