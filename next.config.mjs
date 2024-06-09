@@ -7,6 +7,11 @@ const nextConfig = {
           hostname: 'static-omoi.s3.ap-northeast-2.amazonaws.com',
           pathname: '/**',
         },
+        {
+            protocol: 'https',
+            hostname: 'dummyimage.com',
+            pathname: '/**',
+          },
       ],
     },
   };
