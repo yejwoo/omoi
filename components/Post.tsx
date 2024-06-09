@@ -11,6 +11,8 @@ import formatDate from "@/lib/formatDate";
 import useClickOutside from "@/app/hooks/useClickOutside";
 import useUserProfile from "@/app/hooks/useUserProfile";
 import formatText from "@/lib/formatText";
+import { getTagName, getTagNames } from "@/lib/getTagNames";
+
 
 export default function Post({ post }: { post: IPost }) {
   // 유저 정보
@@ -61,16 +63,13 @@ export default function Post({ post }: { post: IPost }) {
     };
   }, [comments, openCommentModalId]);
 
-  const getTag1Name = (value: string) => {
-    const tag = tags1.find((tag) => tag.value === value);
-    return tag ? tag.name : value;
-  };
 
-  const getTag2Names = (values: string) => {
-    return values.split(",").map((value) => {
-      const tag = tags2.find((tag) => tag.value === value);
-      return tag ? tag.name : value;
-    });
+  // 댓글 실시간 작성 감지
+  const handleChangeComment = async (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    const value = e.target.value;
+    setComment(value);
   };
 
   useEffect(() => {
@@ -425,11 +424,11 @@ export default function Post({ post }: { post: IPost }) {
                 key={`tag1-${post.id}`}
                 className="py-1 px-2 rounded-full text-sm font-semibold cursor-pointer text-gray-500 bg-gray-100"
               >
-                {getTag1Name(post.tags1)}
+                {getTagName(post.tags1)}
               </span>
             )}
             {post.tags2 &&
-              getTag2Names(post.tags2).map((tag: string, index: number) => (
+              getTagNames(post.tags2).map((tag: string, index: number) => (
                 <span
                   key={`tag2-${post.id}-${index}`}
                   className="py-1 px-2 rounded-full text-sm font-semibold cursor-pointer text-gray-500 bg-gray-100"
