@@ -43,7 +43,12 @@ export async function GET(req: NextRequest) {
         },
       });
 
-      return NextResponse.json({ posts });
+      const postsWithCommentCount = posts.map(post => ({
+        ...post,
+        commentCount: post.comments.filter(comment => comment.deletedAt === null).length,
+      }));
+
+      return NextResponse.json({ posts: postsWithCommentCount });
     } catch (error) {
       console.error(`Failed to fetch posts for userId ${userId}:`, error);
       return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
@@ -75,16 +80,27 @@ export async function GET(req: NextRequest) {
         take: limit,
       });
 
-      const totalPosts = await db.post.count();
+      const postsWithCommentCount = posts.map(post => ({
+        ...post,
+        commentCount: post.comments.filter(comment => comment.deletedAt === null).length,
+      }));
+
+      const totalPosts = await db.post.count({
+        where: {
+          postStatus: "public",
+          deletedAt: null,
+        },
+      });
       const hasMore = totalPosts > page * limit;
 
-      return NextResponse.json({ posts, hasMore });
+      return NextResponse.json({ posts: postsWithCommentCount, hasMore });
     } catch (error) {
       console.error("Failed to fetch public posts:", error);
       return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
   }
 }
+
 
 export async function POST(req: NextRequest) {
   try {

@@ -11,6 +11,7 @@ import useUserProfile from "@/app/hooks/useUserProfile";
 import formatText from "@/lib/formatText";
 import { getTagName, getTagNames } from "@/lib/getTagNames";
 import Comment from "@/components/Comment";
+import { animated, useSpring } from "@react-spring/web";
 
 export default function Post({ post }: { post: IPost }) {
   // 유저 정보
@@ -21,6 +22,10 @@ export default function Post({ post }: { post: IPost }) {
   // 좋아요
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [animate, setAnimate] = useState(false);
+
+  // 댓글
+  const [commentCount, setCommentCount] = useState(0);
 
   // 버튼 클릭
   const [showPostModal, setShowPostModal] = useState(false);
@@ -45,8 +50,11 @@ export default function Post({ post }: { post: IPost }) {
   const handleLike = useCallback(
     debounce(async () => {
       try {
+        // Optimistic UI 업데이트
         setLiked(!liked);
         setLikeCount((prevCount) => (liked ? prevCount - 1 : prevCount + 1));
+        setAnimate(true);
+        setTimeout(() => setAnimate(false), 300);
 
         const response = await fetch(`/api/posts/${post.id}/likes/${userId}`, {
           method: liked ? "DELETE" : "POST",
@@ -61,6 +69,7 @@ export default function Post({ post }: { post: IPost }) {
         }
       } catch (error) {
         console.error(error);
+        // Optimistic UI 롤백
         setLiked(!liked);
         setLikeCount((prevCount) => (liked ? prevCount + 1 : prevCount - 1));
       }
@@ -135,6 +144,10 @@ export default function Post({ post }: { post: IPost }) {
     }
   };
 
+  const likeAnimation = useSpring({
+    transform: animate ? "scale(1.2)" : "scale(1)",
+  });
+
   return (
     <>
       <header className="p-5">
@@ -178,7 +191,9 @@ export default function Post({ post }: { post: IPost }) {
                     className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-t-md flex text-gray-500"
                     onClick={() => handleEditPostId(post.id)}
                   >
-                    <span className="flex-grow text-sm text-gray-500">수정</span>
+                    <span className="flex-grow text-sm text-gray-500">
+                      수정
+                    </span>
                     <Image
                       src="/icons/edit.svg"
                       alt="편집"
@@ -239,32 +254,51 @@ export default function Post({ post }: { post: IPost }) {
       {/* 이미지 */}
       {post.images.length > 0 && <ImageCarousel images={post.images} />}
       <div className="p-5">
-        <button
-          type="button"
-          className="text-gray-500 hover:text-gray-700 flex items-center gap-2"
-          onClick={handleLike}
-        >
-          <span className="text-xl text-brand-200">
-            {liked ? (
+        {/* 좋아요, 댓글 버튼 */}
+        <div className="flex gap-4">
+          <button
+            type="button"
+            className="text-gray-500 flex items-center gap-2"
+            onClick={handleLike}
+          >
+            <animated.span
+              style={likeAnimation}
+              className="text-xl text-brand-200"
+            >
+              {liked ? (
+                <Image
+                  src="/icons/flower-filled-pink.svg"
+                  alt="좋아요"
+                  width={24}
+                  height={24}
+                />
+              ) : (
+                <Image
+                  src="/icons/flower-filled-gray.svg"
+                  alt="좋아요"
+                  width={24}
+                  height={24}
+                />
+              )}
+            </animated.span>
+            <span className="text-sm">{likeCount}</span>
+          </button>
+          <button
+            type="button"
+            className="text-gray-500 flex items-center gap-2"
+            onClick={handleLike}
+          >
               <Image
-                src="/icons/flower-filled-pink.svg"
-                alt="like"
+                src="/icons/talk-bubble.svg"
+                alt="댓글"
                 width={24}
                 height={24}
               />
-            ) : (
-              <Image
-                src="/icons/flower-filled-gray.svg"
-                alt="like"
-                width={24}
-                height={24}
-              />
-            )}
-          </span>
-          {likeCount}
-        </button>
+            <span className="text-sm">{post.commentCount}</span>
+          </button>
+        </div>
         {/* 게시글 내용 */}
-        <p className="mt-2 text-sm text-gray-700">{formatText(post.content)}</p>
+        <p className="mt-3 text-sm text-gray-700">{formatText(post.content)}</p>
         {/* 댓글 */}
         <Comment postId={post.id} userId={userId} emailSession={emailSession} />
       </div>
