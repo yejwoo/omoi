@@ -19,7 +19,7 @@ const parseQueryParams = (req: NextRequest) => {
   return {
     userId: url.searchParams.get("userId"),
     page: parseInt(url.searchParams.get("page") || "1", 10),
-    limit: parseInt(url.searchParams.get("limit") || "3", 10),
+    limit: parseInt(url.searchParams.get("limit") || "30", 10),
   };
 };
 
