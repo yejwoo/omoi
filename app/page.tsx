@@ -60,7 +60,7 @@ export default function Home() {
       );
       if (node) {
         observer.current.observe(node);
-        console.log("Observer attached to:", node);
+        // console.log("Observer attached to:", node);
       }
     },
     [isLoading, hasMore]
