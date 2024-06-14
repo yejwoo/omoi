@@ -38,21 +38,14 @@ export default function SignIn() {
           />
           <Button content="로그인" type="primary" size="w-[200px]"/>
         </form>
-        <button>
+        <Link href="/api/auth/google">
           <Image
             src="/images/web_neutral_sq_ctn@4x.png"
             width={200}
             height={40}
             alt="구글 로그인"
           />
-        </button>
-        {/* <Button
-          content="네이버 로그인"
-          type="secondary"
-          onClick={() => {
-            signIn("naver", { redirect: true, callbackUrl: "/" });
-          }}
-        /> */}
+        </Link>
         <div className="flex items-center">
           <Link
             href="/signup"
@@ -65,3 +58,4 @@ export default function SignIn() {
     </div>
   );
 }
+
