@@ -31,8 +31,9 @@ const Header = () => {
   const dropDownRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
+  const { data: userProfile, isLoading: isProfileLoading, error: profileError } = useUserProfile(sessionData?.id || 0);
   const username = sessionData ? sessionData.username : defaultSession.username;
-  const { profileImage } = useUserProfile(sessionData?.id || 0);
+  const profileImage = userProfile?.profile;
 
   useClickOutside(dropDownRef, () => setShowDropDown(false));
   useClickOutside(modalRef, () => setModalOpen(false));

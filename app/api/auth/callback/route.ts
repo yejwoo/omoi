@@ -1,5 +1,5 @@
 import db from '@/lib/db';
-import { getSession } from '@/lib/session';
+import { saveSession } from '@/lib/session';
 import { NextRequest, NextResponse } from 'next/server';
 import querystring from 'querystring';
 
@@ -52,13 +52,14 @@ export async function GET(req: NextRequest) {
       },
     });
   }
-  const session = await getSession();
-  session.email = user.email;
-  session.username = user.name;
-  session.isLoggedIn = true;
-  session.id = dbUser.id;
-  
-  await session.save();
+  const sessionData = {
+    id: dbUser.id,
+    email: user.email,
+    username: user.name,
+    isLoggedIn: true,
+  };
+
+  await saveSession(sessionData);
 
   // 리디렉션
   return NextResponse.redirect(new URL('/', req.url));

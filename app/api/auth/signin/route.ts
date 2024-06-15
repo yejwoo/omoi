@@ -1,9 +1,9 @@
 "use server";
 
 import { NextRequest, NextResponse } from "next/server";
+import { saveSession } from "@/lib/session";
 import bcrypt from "bcrypt";
 import db from "@/lib/db";
-import { getSession } from "@/lib/session";
 import { z } from "zod";
 
 const checkEmailExists = async (email: string) => {
@@ -73,12 +73,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const session = await getSession();
-    session.id = user.id;
-    session.username = user.username;
-    session.email = user.email ?? undefined;
-    session.isLoggedIn = true;
-    await session.save();
+    const sessionData = {
+      id: user.id,
+      email: user.email ?? "",
+      username: user.username,
+      isLoggedIn: true,
+    };
+
+    await saveSession(sessionData);
 
     const baseUrl = new URL(req.nextUrl.origin);
     baseUrl.pathname = "/";
