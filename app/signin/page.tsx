@@ -1,19 +1,46 @@
 "use client";
 
-import { ReactEventHandler, useEffect, useState } from "react";
+import { useState } from "react";
 import { FormEvent } from "react";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
 import Link from "next/link";
-import { useFormState } from "react-dom";
-import { handleSignIn } from "./actions";
-import { signIn, signOut, useSession } from "next-auth/react";
-import { getSession, login, logout } from "@/lib/session";
 import Image from "next/image";
 
+interface State {
+  errors?: {
+    email?: string[];
+    password?: string[];
+  };
+  fieldErrors?: {
+    email?: string[];
+    password?: string[];
+  };
+}
+
 export default function SignIn() {
-  const [state, action] = useFormState(handleSignIn, null);
-  const { data: session, status } = useSession();
+  const [state, setState] = useState<State>({});
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
+    const response = await fetch("/api/auth/signin", {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      window.location.href = result.redirectUrl;
+    } else {
+      setState({
+        errors: result.errors?.fieldErrors,
+        fieldErrors: result.fieldErrors,
+      });
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-100 items-center justify-center px-4">
@@ -21,22 +48,25 @@ export default function SignIn() {
         <div>
           <p className="text-gray-700 font-medium text-lg text-left">로그인</p>
         </div>
-        <form className="space-y-6 flex flex-col items-center" action={action}>
+        <form
+          className="space-y-6 flex flex-col items-center"
+          onSubmit={handleSubmit}
+        >
           <Input
             name="email"
             type="email"
             label="이메일"
             placeholder="이메일을 입력하세요."
-            errors={state?.fieldErrors.email}
+            errors={state?.errors?.email || state?.fieldErrors?.email}
           />
           <Input
             name="password"
             type="password"
             label="비밀번호"
             placeholder="비밀번호를 입력하세요."
-            errors={state?.fieldErrors.password}
+            errors={state?.errors?.password || state?.fieldErrors?.password}
           />
-          <Button content="로그인" type="primary" size="w-[200px]"/>
+          <Button content="로그인" type="primary" size="w-[200px]" />
         </form>
         <Link href="/api/auth/google">
           <Image
@@ -58,4 +88,3 @@ export default function SignIn() {
     </div>
   );
 }
-

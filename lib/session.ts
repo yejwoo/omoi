@@ -1,3 +1,4 @@
+// lib/session.ts
 "use server";
 
 import { getIronSession } from "iron-session";
@@ -18,7 +19,7 @@ export async function login(formData: FormData) {
 export async function logout() {
   const session = await getSession();
   session.destroy();
-  redirect("/");
+  revalidatePath("/");
 }
 
 export async function getSession() {

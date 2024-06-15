@@ -3,17 +3,25 @@
 import Image from "next/image";
 import logo from "../public/logo/logo_title.svg";
 import Link from "next/link";
-import { useState, useRef } from "react";
-import { logout } from "@/lib/session";
-import { defaultSession } from "@/lib/sessionSetting";
+import { useState, useEffect, useRef } from "react";
 import WriteModal from "@/components/WriteModal";
 import useClickOutside from "@/app/hooks/useClickOutside";
 import useUserProfile from "@/app/hooks/useUserProfile";
-import { useQuery } from "react-query";
-import { fetchSession } from "@/lib/api";
+import { useQuery, useQueryClient } from "react-query";
+import { fetchSession } from '@/lib/api';
+import { logout } from '@/lib/session';
+import { defaultSession } from "@/lib/sessionSetting";
 
 const Header = () => {
-  const {data: sessionData, isLoading, error} = useQuery("session", fetchSession);
+  const queryClient = useQueryClient();
+  const {
+    data: sessionData,
+    isLoading,
+    error,
+  } = useQuery("session", fetchSession, {
+    refetchOnWindowFocus: false,
+  });
+
   const [showDropDown, setShowDropDown] = useState(false);
   const [isModalOpen, setModalOpen] = useState(false);
   const toggleDropDown = () => setShowDropDown(!showDropDown);
@@ -21,6 +29,7 @@ const Header = () => {
   const handleCloseModal = () => setModalOpen(false);
   const dropDownRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+
   const username = sessionData ? sessionData.username : defaultSession.username;
   const { profileImage } = useUserProfile(sessionData?.id || 0);
 
@@ -35,14 +44,15 @@ const Header = () => {
     handleCloseModal();
   };
 
-  // 로그아웃 함수
   const handleLogout = async () => {
     await logout();
+    queryClient.invalidateQueries('session'); // 세션 쿼리 무효화
+    window.location.reload();
   };
 
   if (isLoading) return <div>Loading...</div>;
   if (error) {
-    console.error("Error fetching session data:", error); // 디버깅 로그 추가
+    console.error("Error fetching session data:", error); 
     return <div>Error loading session data</div>;
   }
 
@@ -79,7 +89,7 @@ const Header = () => {
             </ul>
           </div>
           <div>
-            {!sessionData.isLoggedIn && (
+            {!sessionData?.isLoggedIn && (
               <div className="flex gap-4 items-center text-sm">
                 <Link className="block px-2 py-4" href="/signin">
                   로그인
@@ -92,7 +102,7 @@ const Header = () => {
                 </Link>
               </div>
             )}
-            {sessionData.isLoggedIn && (
+            {sessionData?.isLoggedIn && (
               <div className="relative" ref={dropDownRef}>
                 <div className="flex items-center gap-2">
                   <button
