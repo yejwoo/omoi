@@ -47,11 +47,16 @@ const Comment: React.FC<CommentProps> = ({
   const [commentValues, setCommentValues] = useState<Record<number, string>>(
     {}
   );
+  const [formHeight, setFormHeight] = useState("auto"); 
+  const [textareaHeight, setTextareaHeight] = useState("auto");
+
 
   const [replies, setReplies] = useState<Record<number, IReplies[]>>({});
 
   const commentRefs = useRef<(HTMLUListElement | null)[]>([]);
   const replyRefs = useRef<(HTMLUListElement | null)[]>([]);
+  const formRef = useRef<HTMLFormElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 댓글 모달 바깥 클릭시 모달 끄기
   useEffect(() => {
@@ -89,6 +94,14 @@ const Comment: React.FC<CommentProps> = ({
   ) => {
     const value = e.target.value;
     setComment(value);
+
+    if (textareaRef.current && formRef.current) {
+      textareaRef.current.style.height = "auto";
+      const newHeight = `${textareaRef.current.scrollHeight}px`;
+      textareaRef.current.style.height = newHeight;
+      setTextareaHeight(newHeight); 
+      setFormHeight(`calc(${newHeight} + 2rem)`);
+    }
   };
 
   useEffect(() => {
@@ -155,7 +168,12 @@ const Comment: React.FC<CommentProps> = ({
 
       const result = await response.json();
       console.log("답글: ", result);
-      setComment("");
+      setComment("")
+      setFormHeight("auto"); 
+      setTextareaHeight("auto"); 
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto"; 
+      }
       setIsReply(false);
       setReplyCommentId(null);
       setParentReplyId(null);
@@ -359,7 +377,7 @@ const Comment: React.FC<CommentProps> = ({
                     onChange={(e) =>
                       handleEditCommentChange(comment.id, e.target.value)
                     }
-                    className="p-1 w-full resize-y min-h-10"
+                    className="my-3 w-full h-24 focus:ring-2 focus:ring-gray-100 focus:border-transparent"
                   />
                   <button
                     type="button"
@@ -593,7 +611,8 @@ const Comment: React.FC<CommentProps> = ({
       </div>
 
       <form
-        className="border-gray-200 border-t p-3 bg-white flex gap-2 max-h-20 md:static fixed bottom-0 left-0 right-0"
+        ref={formRef}
+        className="border-gray-200 border-t p-3 bg-white flex gap-2 md:static fixed bottom-0 left-0 right-0"
         onSubmit={handleComment}
       >
         <div className="flex flex-grow items-baseline gap-2">
@@ -608,10 +627,12 @@ const Comment: React.FC<CommentProps> = ({
           <textarea
             id="content"
             name="content"
+            ref={textareaRef}
             placeholder="댓글을 작성하세요."
             value={comment}
             onChange={handleChangeComment}
-            className="flex flex-grow w-full text-sm max-h-20 focus:ring-2 focus:ring-gray-100 focus:border-transparent"
+            className="flex-grow w-full text-sm focus:ring-2 focus:ring-gray-100 focus:border-transparent max-h-20"
+            rows={1}
           />
         </div>
         <input type="hidden" name="postId" value={postId} />

@@ -320,7 +320,7 @@ export default function Post({ post }: { post: IPost }) {
           <div className="w-full md:w-1/2">
             <ImageCarousel images={post.images} />
           </div>
-          <p className="border-b pb-4 text-sm text-gray-700 md:none">
+          <p className="border-b pb-4 text-sm text-gray-700 md:hidden">
               {formatText(post.content)}
           </p>
           <div className="w-full md:w-1/2 p-4 overflow-y-auto h-full md:h-auto no-scrollbar pb-12">
