@@ -15,9 +15,13 @@ import { useQuery } from "react-query";
 
 export default function Post({ post }: { post: IPost }) {
   // 유저 정보
-  const {data: sessionData}= useQuery("session", fetchSession)
+  const { data: sessionData } = useQuery("session", fetchSession);
   const [userId, setUserId] = useState(0);
-  const { data: userProfile, isLoading: isProfileLoading, error: profileError } = useUserProfile(sessionData?.id || 0);
+  const {
+    data: userProfile,
+    isLoading: isProfileLoading,
+    error: profileError,
+  } = useUserProfile(sessionData?.id || 0);
   const profileImage = userProfile?.profile;
 
   // 좋아요
@@ -102,7 +106,7 @@ export default function Post({ post }: { post: IPost }) {
 
   const handlePostModal = useCallback(
     (id: number) => {
-      console.log(`handlePostModal called with id: ${id}`);
+      // console.log(`handlePostModal called with id: ${id}`);
       setOpenPostModalId((prevId) => (prevId === id ? 0 : id));
       setShowPostModal((prevShow) =>
         prevShow && openPostModalId === id ? false : true
@@ -172,7 +176,9 @@ export default function Post({ post }: { post: IPost }) {
               <div className="inline-block w-10 h-10 bg-gray-300 rounded-full"></div>
             )}
             <span className="font-semibold">{post.user.username}</span>
-            <span className="text-sm text-gray-500">{formatDate(post.date)}</span>
+            <span className="text-sm text-gray-500">
+              {formatDate(post.date)}
+            </span>
           </div>
           <div className="relative">
             <button
@@ -310,19 +316,18 @@ export default function Post({ post }: { post: IPost }) {
         </div>
       </div>
       <Modal isOpen={showModal} onClose={closeCommentModal}>
-        <div className="flex overflow-hidden h-full">
-          <div className="w-1/2">
+        <div className="flex flex-col md:flex-row overflow-hidden h-full md:h-auto">
+          <div className="w-full md:w-1/2">
             <ImageCarousel images={post.images} />
           </div>
-          <div className="w-1/2 p-4 overflow-y-auto h-full no-scrollbar">
-            <p className="border-b pb-4 text-sm text-gray-700">
+          <p className="border-b pb-4 text-sm text-gray-700 md:none">
+              {formatText(post.content)}
+          </p>
+          <div className="w-full md:w-1/2 p-4 overflow-y-auto h-full md:h-auto no-scrollbar pb-12">
+            <p className="border-b pb-4 text-sm text-gray-700 hidden md:block">
               {formatText(post.content)}
             </p>
-            <Comment
-              postId={post.id}
-              userId={userId}
-              sessionData={sessionData}
-            />
+            <Comment postId={post.id} userId={userId} sessionData={sessionData} profileImage={profileImage}/>
           </div>
         </div>
       </Modal>

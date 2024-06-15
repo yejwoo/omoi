@@ -24,7 +24,12 @@ interface IReplies {
   };
 }
 
-const Comment: React.FC<CommentProps> = ({ postId, userId, sessionData }) => {
+const Comment: React.FC<CommentProps> = ({
+  postId,
+  userId,
+  sessionData,
+  profileImage,
+}) => {
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState<IComments[]>([]);
@@ -135,7 +140,8 @@ const Comment: React.FC<CommentProps> = ({ postId, userId, sessionData }) => {
           content,
           postId: postId.toString(),
           userId: userId.toString(),
-          parentReplyId: isReply && parentReplyId !== replyCommentId ? parentReplyId : null,
+          parentReplyId:
+            isReply && parentReplyId !== replyCommentId ? parentReplyId : null,
           commentId: isReply ? replyCommentId : postId,
         }),
         headers: {
@@ -463,7 +469,7 @@ const Comment: React.FC<CommentProps> = ({ postId, userId, sessionData }) => {
                     <div key={reply.id} className="flex flex-col gap-2 py-2">
                       <div className="flex flex-shrink-0 gap-2 items-center mb-1">
                         {reply.user.profile ? (
-                          <div className="relative w-5 h-5 rounded-full flex-shrink-0">
+                          <div className="relative w-6 h-6 rounded-full flex-shrink-0">
                             <Image
                               src={reply.user.profile}
                               fill
@@ -587,17 +593,27 @@ const Comment: React.FC<CommentProps> = ({ postId, userId, sessionData }) => {
       </div>
 
       <form
-        className="border-gray-200 p-3 flex max-h-20"
+        className="border-gray-200 border-t p-3 bg-white flex gap-2 max-h-20 md:static fixed bottom-0 left-0 right-0"
         onSubmit={handleComment}
       >
-        <textarea
-          id="content"
-          name="content"
-          placeholder="댓글을 작성하세요."
-          value={comment}
-          onChange={handleChangeComment}
-          className="flex flex-grow text-sm max-h-20"
-        />
+        <div className="flex flex-grow items-baseline gap-2">
+          <div className="relative w-6 h-6 rounded-full flex-shrink-0">
+            <Image
+              src={profileImage}
+              fill
+              className="object-cover rounded-full mt-2"
+              alt="유저 프로필"
+            />
+          </div>
+          <textarea
+            id="content"
+            name="content"
+            placeholder="댓글을 작성하세요."
+            value={comment}
+            onChange={handleChangeComment}
+            className="flex flex-grow w-full text-sm max-h-20 focus:ring-2 focus:ring-gray-100 focus:border-transparent"
+          />
+        </div>
         <input type="hidden" name="postId" value={postId} />
         <input type="hidden" name="userId" value={userId} />
         <button

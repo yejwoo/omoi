@@ -33,7 +33,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black bg-opacity-50">
       <Image
-        className="flex p-1 items-end cursor-pointer absolute right-4 top-4"
+        className="flex p-1 items-end cursor-pointer absolute right-4 top-4 z-10"
         src="/icons/close.svg"
         width={40}
         height={40}
@@ -42,7 +42,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
       />
       <div
         ref={modalRef}
-        className="bg-white rounded-md p-4 w-full h-5/6 max-w-5xl relative overflow-hidden"
+        className="bg-white md:rounded-md p-4 w-full h-full md:h-5/6 max-w-5xl relative overflow-hidden"
       >
         <div className="h-full overflow-y-auto">{children}</div>
       </div>

@@ -1,7 +1,7 @@
 // components/SkeletonPost.tsx
 const SkeletonPost = () => {
     return (
-      <div className="mb-8 bg-white rounded-xl shadow-lg p-5 h-[633px]">
+      <div className="mb-8 p-5 h-[633px]">
         <header className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-full skeleton"></div>
           <div className="flex-1 space-y-2">
