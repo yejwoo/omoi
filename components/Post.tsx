@@ -1,8 +1,5 @@
 import ImageCarousel from "@/components/ImageCarousel";
-import { getSession } from "@/lib/session";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { tags1, tags2 } from "@/app/data/tags";
-import { defaultSession } from "@/lib/sessionSetting";
 import Image from "next/image";
 import IPost from "@/app/interface/IPost";
 import debounce from "@/lib/debounce";
@@ -13,12 +10,15 @@ import { getTagName, getTagNames } from "@/lib/getTagNames";
 import Comment from "@/components/Comment";
 import { animated, useSpring } from "@react-spring/web";
 import Modal from "./Modal";
+import { fetchSession } from "@/lib/api";
+import { useQuery } from "react-query";
 
 export default function Post({ post }: { post: IPost }) {
   // 유저 정보
-  const [emailSession, setEmailSession] = useState(defaultSession);
+  const {data: sessionData}= useQuery("session", fetchSession)
   const [userId, setUserId] = useState(0);
-  const { profileImage } = useUserProfile(userId || 0);
+  const { data: userProfile, isLoading: isProfileLoading, error: profileError } = useUserProfile(sessionData?.id || 0);
+  const profileImage = userProfile?.profile;
 
   // 좋아요
   const [liked, setLiked] = useState(false);
@@ -36,17 +36,12 @@ export default function Post({ post }: { post: IPost }) {
 
   const postRefs = useRef<(HTMLUListElement | null)[]>([]);
 
+  // 유저 아이디 세팅
   useEffect(() => {
-    const fetchSession = async () => {
-      const emailSession = await getSession();
-      if (emailSession && emailSession.id) {
-        setUserId(emailSession.id || 0);
-        setEmailSession(emailSession);
-      }
-    };
-
-    fetchSession();
-  }, []);
+    if (sessionData) {
+      setUserId(sessionData.id);
+    }
+  }, [sessionData]);
 
   // 좋아요 버튼 클릭시 추가 or 삭제
   const handleLike = useCallback(
@@ -326,7 +321,7 @@ export default function Post({ post }: { post: IPost }) {
             <Comment
               postId={post.id}
               userId={userId}
-              emailSession={emailSession}
+              sessionData={sessionData}
             />
           </div>
         </div>

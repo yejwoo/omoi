@@ -1,11 +1,12 @@
 "use client";
 
-import { getSession } from "@/lib/session";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import IPost from "@/app/interface/IPost";
 import { tags1, tags2 } from "@/app/data/tags";
 import useUserProfile from "../hooks/useUserProfile";
+import { fetchSession } from "@/lib/api";
+import { useQuery } from "react-query";
 
 const Home = () => {
   const [posts, setPosts] = useState<IPost[]>([]);
@@ -14,7 +15,13 @@ const Home = () => {
   const [userName, setUserName] = useState<string>("");
   const modalRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setModalOpen] = useState<Boolean>(false);
-  const { profileImage, loading, error } = useUserProfile(userId || 0);
+  const { data: sessionData } = useQuery("session", fetchSession);
+  const {
+    data: userProfile,
+    isLoading: isProfileLoading,
+    error: profileError,
+  } = useUserProfile(sessionData?.id || 0);
+  const profileImage = userProfile?.profile;
 
   const getTag1Name = (value: string) => {
     const tag = tags1.find((tag) => tag.value === value);
@@ -43,16 +50,11 @@ const Home = () => {
   }, [modalRef]);
 
   useEffect(() => {
-    const fetchSession = async () => {
-      const emailSession = await getSession();
-      if (emailSession && emailSession.id) {
-        setUserId(emailSession.id || 0);
-        setUserName(emailSession.username || "");
-      }
-    };
-
-    fetchSession();
-  }, []);
+    if (sessionData) {
+      setUserId(sessionData.id);
+      setUserName(sessionData.username);
+    }
+  }, [sessionData]);
 
   useEffect(() => {
     const fetchPosts = async () => {

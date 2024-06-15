@@ -109,10 +109,6 @@ const MyOmoi = () => {
     setIsLoading(false);
   };
 
-  useEffect(()=>{
-    console.log(profileImage)
-  }, [profileImage])
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 py-10 px-4">
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">

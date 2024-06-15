@@ -5,11 +5,11 @@ import { useEffect, useState, useRef } from "react";
 import Dropzone from "@/components/Dropzone";
 import Image from "next/image";
 import Input from "./Input";
-import { useSession } from "next-auth/react";
 import { FileWithPath } from "react-dropzone";
 import uploadFiles from "@/lib/UploadFiles";
 import { tags1, tags2 } from "@/app/data/tags";
-import { getSession } from "@/lib/session";
+import { useQuery } from "react-query";
+import { fetchSession } from "@/lib/api";
 
 interface modalState {
   isOpen: boolean;
@@ -30,8 +30,7 @@ const enableScroll = () => {
 };
 
 export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
-  const { data: session } = useSession();
-  const [userId, setUserId] = useState<number | null>(null);
+  const { data: sessionData } = useQuery("session", fetchSession);
   const [uploadedFiles, setUploadedFiles] = useState<FileWithPreview[]>([]);
   const [selectedTag1, setSelectedTag1] = useState<string>("");
   const [selectedTag2, setSelectedTag2] = useState<string[]>([]);
@@ -51,24 +50,7 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // 유저 세션 데이터 패칭
-    const fetchSession = async () => {
-      if (session) {
-        // @TODO: 네이버 이메일 유저 정보 및 아이디 저장
-        // if (session.user && session.user?.name) {
-        // setUserId(session.user?.name);
-        // }
-      } else {
-        const emailSession = await getSession();
-        // console.log(emailSession)
-        if (emailSession && emailSession.id) {
-          setUserId(emailSession.id || 0);
-        }
-      }
-    };
-
     if (isOpen) {
-      fetchSession();
       disableScroll();
     } else {
       enableScroll();
@@ -94,7 +76,7 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
       enableScroll();
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isOpen, session, onClose]);
+  }, [isOpen, sessionData, onClose]);
 
   // 파일 업로드
   function fileToBlob(file: FileWithPreview): Promise<Blob> {
@@ -365,13 +347,13 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
               <option value="private">비공개</option>
             </select>
           </div>
-          {userId && (
+          {sessionData.id && (
             <div className="hidden">
               <Input
                 type="hidden"
                 name="userId"
                 label="유저 아이디"
-                value={userId}
+                value={sessionData.id}
               />
             </div>
           )}

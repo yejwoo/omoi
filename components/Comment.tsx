@@ -8,7 +8,7 @@ import Image from "next/image";
 interface CommentProps {
   postId: number;
   userId: number;
-  emailSession: any;
+  sessionData: any;
 }
 
 interface IReplies {
@@ -24,7 +24,7 @@ interface IReplies {
   };
 }
 
-const Comment: React.FC<CommentProps> = ({ postId, userId, emailSession }) => {
+const Comment: React.FC<CommentProps> = ({ postId, userId, sessionData }) => {
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState<IComments[]>([]);
@@ -427,7 +427,7 @@ const Comment: React.FC<CommentProps> = ({ postId, userId, emailSession }) => {
                       commentRefs.current[index] = el;
                     }}
                   >
-                    {comment.userId === emailSession.id && (
+                    {comment.userId === sessionData.id && (
                       <li
                         className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-t-md flex text-gray-500"
                         onClick={() => handleEditCommentId(comment.id)}
@@ -524,7 +524,7 @@ const Comment: React.FC<CommentProps> = ({ postId, userId, emailSession }) => {
                         >
                           답글
                         </button>
-                        {reply.userId === emailSession.id && (
+                        {reply.userId === sessionData.id && (
                           <div className="relative h-5">
                             <button onClick={() => handleReplyModal(reply.id)}>
                               <Image
