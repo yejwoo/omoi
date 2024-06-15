@@ -35,7 +35,7 @@ const useUserProfile = (userId: number) => {
 
       fetchUserProfile();
     }
-  }, [userId]);
+  }, []);
 
   return { profileImage, userName, loading, error };
 };
