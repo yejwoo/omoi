@@ -3,6 +3,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import AuthSession from "@/AuthSession";
 import { AuthProvider } from "./context/AuthContext";
+import QueryProvider from "@/components/QueryClientProvider";
 
 export const metadata: Metadata = {
   title: "omoi",
@@ -17,12 +18,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthProvider>
-          <AuthSession>
-            <Header />
-            {children}
-          </AuthSession>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <AuthSession>
+              <Header />
+              {children}
+            </AuthSession>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );
