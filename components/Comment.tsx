@@ -47,9 +47,8 @@ const Comment: React.FC<CommentProps> = ({
   const [commentValues, setCommentValues] = useState<Record<number, string>>(
     {}
   );
-  const [formHeight, setFormHeight] = useState("auto"); 
+  const [formHeight, setFormHeight] = useState("auto");
   const [textareaHeight, setTextareaHeight] = useState("auto");
-
 
   const [replies, setReplies] = useState<Record<number, IReplies[]>>({});
 
@@ -99,7 +98,7 @@ const Comment: React.FC<CommentProps> = ({
       textareaRef.current.style.height = "auto";
       const newHeight = `${textareaRef.current.scrollHeight}px`;
       textareaRef.current.style.height = newHeight;
-      setTextareaHeight(newHeight); 
+      setTextareaHeight(newHeight);
       setFormHeight(`calc(${newHeight} + 2rem)`);
     }
   };
@@ -168,11 +167,11 @@ const Comment: React.FC<CommentProps> = ({
 
       const result = await response.json();
       console.log("답글: ", result);
-      setComment("")
-      setFormHeight("auto"); 
-      setTextareaHeight("auto"); 
+      setComment("");
+      setFormHeight("auto");
+      setTextareaHeight("auto");
       if (textareaRef.current) {
-        textareaRef.current.style.height = "auto"; 
+        textareaRef.current.style.height = "auto";
       }
       setIsReply(false);
       setReplyCommentId(null);
@@ -406,7 +405,7 @@ const Comment: React.FC<CommentProps> = ({
                         />
                       </div>
                     ) : (
-                      <div className="inline-block w-6 h-6 bg-slate-300 rounded-full"></div>
+                      <div className="inline-block w-6 h-6 bg-gray-300 rounded-full"></div>
                     )}
                     <span className="font-semibold text-gray-700 flex-shrink-0">
                       {comment.user.username}
@@ -418,7 +417,9 @@ const Comment: React.FC<CommentProps> = ({
                 </div>
               )}
               <div className="relative flex items-center gap-2">
-                <span className="text-xs">{formatDate(comment.createdAt)}</span>
+                <span className="text-xs">
+                  {formatDate(comment.createdAt, true)}
+                </span>
                 <button
                   className="text-gray-600 cursor-pointer"
                   type="button"
@@ -481,9 +482,9 @@ const Comment: React.FC<CommentProps> = ({
                 </div>
               </div>
               {/* 답글 */}
-              <div className="ml-6 mt-2">
-                {replies[comment.id] &&
-                  replies[comment.id].map((reply, replyIndex) => (
+              {replies[comment.id] && replies[comment.id].length > 0 && (
+                <div className="ml-6 mt-2">
+                  {replies[comment.id].map((reply, replyIndex) => (
                     <div key={reply.id} className="flex flex-col gap-2 py-2">
                       <div className="flex flex-shrink-0 gap-2 items-center mb-1">
                         {reply.user.profile ? (
@@ -496,7 +497,7 @@ const Comment: React.FC<CommentProps> = ({
                             />
                           </div>
                         ) : (
-                          <div className="inline-block w-5 h-5 bg-slate-300 rounded-full"></div>
+                          <div className="inline-block w-5 h-5 bg-gray-300 rounded-full"></div>
                         )}
                         <span className="font-semibold text-gray-700 flex-shrink-0 text-sm">
                           {reply.user.username}
@@ -602,7 +603,8 @@ const Comment: React.FC<CommentProps> = ({
                       </div>
                     </div>
                   ))}
-              </div>
+                </div>
+              )}
             </div>
           ))
         ) : (

@@ -159,7 +159,7 @@ const Home = () => {
                     />
                   </div>
                 ) : (
-                  <div className="inline-block w-8 h-8 bg-slate-300 rounded-full"></div>
+                  <div className="inline-block w-8 h-8 bg-gray-300 rounded-full"></div>
                 )}
                 <h2 className="text-base font-semibold">
                   {selectedPost.user.username}

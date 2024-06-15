@@ -160,7 +160,7 @@ export default function Post({ post }: { post: IPost }) {
 
   return (
     <>
-      <header className="p-5">
+      <header className="py-5">
         <div className="flex items-center justify-between">
           <div className="flex gap-2 items-center">
             {post.user.profile ? (
@@ -267,10 +267,10 @@ export default function Post({ post }: { post: IPost }) {
       {/* 이미지 */}
       {post.images.length > 0 && <ImageCarousel images={post.images} />}
       {/* 게시글 내용 */}
-      <p className="p-5 border-b text-sm text-gray-700">
+      <p className="py-6 border-b text-sm text-gray-700">
         {formatText(post.content)}
       </p>
-      <div className="p-5">
+      <div className="py-4">
         {/* 좋아요, 댓글 버튼 */}
         <div className="flex gap-4">
           <button
@@ -317,12 +317,9 @@ export default function Post({ post }: { post: IPost }) {
       </div>
       <Modal isOpen={showModal} onClose={closeCommentModal}>
         <div className="flex flex-col md:flex-row overflow-hidden h-full md:h-auto">
-          <div className="w-full md:w-1/2">
+          <div className="w-full hidden md:w-1/2 md:block">
             <ImageCarousel images={post.images} />
           </div>
-          <p className="border-b pb-4 text-sm text-gray-700 md:hidden">
-              {formatText(post.content)}
-          </p>
           <div className="w-full md:w-1/2 p-4 overflow-y-auto h-full md:h-auto no-scrollbar pb-12">
             <p className="border-b pb-4 text-sm text-gray-700 hidden md:block">
               {formatText(post.content)}

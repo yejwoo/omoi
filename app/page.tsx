@@ -102,7 +102,7 @@ export default function Home() {
 
   if (isLoading && page === 1) {
     return (
-      <div className="min-h-screen py-20 px-5">
+      <div className="min-h-screen py-5 md:py-20 px-5">
         <main className="max-w-lg mx-auto">
           {[...Array(30)].map((_, index) => (
             <SkeletonPost key={index} />
@@ -121,7 +121,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white py-20 px-5">
+    <div className="min-h-screen bg-white py-5 md:py-20 px-5">
       <main className="max-w-lg mx-auto">
         {posts.map((post, index) => {
           if (!hasSetRef && index >= Math.floor(posts.length * 0.7)) {
