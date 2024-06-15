@@ -69,7 +69,15 @@ const Header = () => {
           <div className="flex gap-8">
             <div className="flex-shrink-0 flex items-center">
               <Link href="/">
-                <Image src={logo} width={72} height={72} alt="omoi logo" />
+                <div className="relative w-[72px] h-[48px]">
+                  <Image
+                    src={logo}
+                    layout="fill"
+                    objectFit="contain"
+                    alt="omoi logo"
+                    priority
+                  />
+                </div>
               </Link>
             </div>
             <ul className="flex gap-2">
@@ -80,6 +88,7 @@ const Header = () => {
                     width={24}
                     height={24}
                     alt="home"
+                    priority
                   />
                 </Link>
               </li>
@@ -129,17 +138,28 @@ const Header = () => {
                 {showDropDown && (
                   <ul className="origin-top-right absolute right-0 mt-2 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
                     <li className="text-gray-700 text-base rounded-t-md">
-                      <div className="block px-4 py-2"  onClick={handleLinkClick}>
+                      <div
+                        className="block px-4 py-2"
+                        onClick={handleLinkClick}
+                      >
                         <span className="font-bold">{username}</span> 님
                       </div>
                     </li>
                     <li className="text-gray-700 text-sm hover:bg-gray-100">
-                      <Link className="block px-4 py-2" href="/my-omoi" onClick={handleLinkClick}>
+                      <Link
+                        className="block px-4 py-2"
+                        href="/my-omoi"
+                        onClick={handleLinkClick}
+                      >
                         내 피드
                       </Link>
                     </li>
                     <li className="text-gray-700 text-sm hover:bg-gray-100">
-                      <Link className="block px-4 py-2" href="/profile" onClick={handleLinkClick}>
+                      <Link
+                        className="block px-4 py-2"
+                        href="/profile"
+                        onClick={handleLinkClick}
+                      >
                         프로필 수정
                       </Link>
                     </li>
