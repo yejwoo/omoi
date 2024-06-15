@@ -8,9 +8,10 @@ import WriteModal from "@/components/WriteModal";
 import useClickOutside from "@/app/hooks/useClickOutside";
 import useUserProfile from "@/app/hooks/useUserProfile";
 import { useQuery, useQueryClient } from "react-query";
-import { fetchSession } from '@/lib/api';
-import { logout } from '@/lib/session';
+import { fetchSession } from "@/lib/api";
+import { logout } from "@/lib/session";
 import { defaultSession } from "@/lib/sessionSetting";
+import SkeletonHeader from "@/components/SkeletonHeader";
 
 const Header = () => {
   const queryClient = useQueryClient();
@@ -46,14 +47,13 @@ const Header = () => {
 
   const handleLogout = async () => {
     await logout();
-    queryClient.invalidateQueries('session'); // 세션 쿼리 무효화
+    queryClient.invalidateQueries("session"); // 세션 쿼리 무효화
     window.location.reload();
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <SkeletonHeader />;
   if (error) {
-    console.error("Error fetching session data:", error); 
-    return <div>Error loading session data</div>;
+    console.error("Error fetching session data:", error);
   }
 
   return (
