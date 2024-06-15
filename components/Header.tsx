@@ -31,7 +31,11 @@ const Header = () => {
   const dropDownRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const { data: userProfile, isLoading: isProfileLoading, error: profileError } = useUserProfile(sessionData?.id || 0);
+  const {
+    data: userProfile,
+    isLoading: isProfileLoading,
+    error: profileError,
+  } = useUserProfile(sessionData?.id || 0);
   const username = sessionData ? sessionData.username : defaultSession.username;
   const profileImage = userProfile?.profile;
 
@@ -58,10 +62,11 @@ const Header = () => {
   }
 
   return (
-    <header className="z-[99] bg-white dark:bg-gray-800 w-full shadow fixed top-0">
-      <nav className="max-w-3xl mx-auto px-2 sm:px-6 lg:px-8">
+    <header className="z-[99] bg-white dark:bg-gray-800 w-full md:h-16 border-gray-200 border-t fixed bottom-0 md:top-0 md:shadow">
+      {/* PC 네비 */}
+      <nav className="max-w-3xl mx-auto px-2 sm:px-6 lg:px-8 hidden md:block">
         <div className="flex justify-between items-center gap-4">
-          <div className="flex gap-8">
+          <div className="flex gap-8 ">
             <div className="flex-shrink-0 flex items-center">
               <Link href="/">
                 <div className="relative w-[72px] h-[48px]">
@@ -126,7 +131,7 @@ const Header = () => {
                         />
                       </div>
                     ) : (
-                      <div className="inline-block w-8 h-8 bg-slate-300 rounded-full"></div>
+                      <div className="inline-block w-8 h-8 bg-gray-300 rounded-full"></div>
                     )}
                   </div>
                 </div>
@@ -172,6 +177,45 @@ const Header = () => {
             )}
           </div>
         </div>
+      </nav>
+      {/* 모바일 네비 */}
+      <nav className="max-w-3xl mx-auto px-2 sm:px-6 lg:px-8 block md:hidden">
+        <ul className="flex gap-2">
+          <li className="w-1/3 flex justify-center items-center">
+            <Link className="block p-2" href="/">
+              <Image
+                src="/icons/home.svg"
+                width={28}
+                height={28}
+                alt="메인"
+              />
+            </Link>
+          </li>
+          <li className="w-1/3 flex justify-center items-center">
+            <button onClick={handleOpenModal}>
+            <Image
+                src="/icons/add.svg"
+                width={28}
+                height={28}
+                alt="작성"
+              />
+            </button>
+          </li>
+          <li className="w-1/3 flex justify-center items-center">
+            {profileImage ? (
+              <div className="relative w-6 h-6 rounded-full border-2 border-black">
+                <Image
+                  src={profileImage}
+                  fill
+                  className="object-cover rounded-full"
+                  alt="profile"
+                />
+              </div>
+            ) : (
+              <div className="inline-block border-2 w-6 h-6 bg-gray-300 rounded-full"></div>
+            )}
+          </li>
+        </ul>
       </nav>
       <WriteModal
         isOpen={isModalOpen}
