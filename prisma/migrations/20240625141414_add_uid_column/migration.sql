@@ -1,0 +1,23 @@
+-- AlterTable
+ALTER TABLE "Comment" ALTER COLUMN "createdAt" SET DEFAULT NOW(),
+ALTER COLUMN "updatedAt" SET DEFAULT NOW();
+
+-- AlterTable
+ALTER TABLE "Image" ALTER COLUMN "createdAt" SET DEFAULT NOW(),
+ALTER COLUMN "updatedAt" SET DEFAULT NOW();
+
+-- AlterTable
+ALTER TABLE "Like" ALTER COLUMN "createdAt" SET DEFAULT NOW();
+
+-- AlterTable
+ALTER TABLE "Post" ADD COLUMN     "uid" TEXT,
+ALTER COLUMN "createdAt" SET DEFAULT NOW(),
+ALTER COLUMN "updatedAt" SET DEFAULT NOW();
+
+-- AlterTable
+ALTER TABLE "ReplyComment" ALTER COLUMN "createdAt" SET DEFAULT NOW(),
+ALTER COLUMN "updatedAt" SET DEFAULT NOW();
+
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "createdAt" SET DEFAULT NOW(),
+ALTER COLUMN "updatedAt" SET DEFAULT NOW();

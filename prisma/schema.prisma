@@ -38,6 +38,7 @@ model Post {
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   postStatus String?  @default("public")
   likes     Like[]
+  uid       String?
   isDeleted Boolean   @default(false)
   createdAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
   updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0) @updatedAt
