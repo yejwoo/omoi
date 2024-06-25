@@ -10,6 +10,7 @@ import uploadFiles from "@/lib/UploadFiles";
 import { tags1, tags2 } from "@/app/data/tags";
 import { useQuery } from "react-query";
 import { fetchSession } from "@/lib/api";
+import generateUID from "@/lib/generateUID";
 
 interface modalState {
   isOpen: boolean;
@@ -357,6 +358,16 @@ export default function PostForm({ isOpen, onClose, onSubmit }: modalState) {
               />
             </div>
           )}
+          <div>
+            <div className="hidden">
+              <Input
+                type="hidden"
+                name="uid"
+                label="UID"
+                value={generateUID()}
+              />
+            </div>
+          </div>
           <div className="flex items-center justify-between mt-4">
             <Button content="게시" type="primary" isSubmitting={isSubmitting} />
           </div>

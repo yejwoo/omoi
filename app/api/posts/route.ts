@@ -1,4 +1,5 @@
 import db from "@/lib/db";
+import generateUID from "@/lib/generateUID";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -10,6 +11,7 @@ const postSchema = z.object({
   tags2: z.string().optional(),
   userId: z.number().int(),
   images: z.array(z.string()),
+  uid: z.string().optional(),
   postStatus: z.string().optional(),
 });
 type PostData = z.infer<typeof postSchema>;
@@ -137,6 +139,7 @@ export async function POST(req: NextRequest) {
       userId: Number(formData.userId),
       images: JSON.parse(formData.files || "[]"), // This should be an array of image URLs
       postStatus: formData.postStatus,
+      uid: formData.uid,
     };
 
     const result = await postSchema.safeParseAsync(data);
@@ -156,6 +159,7 @@ export async function POST(req: NextRequest) {
         tags2: postData.tags2,
         userId: postData.userId,
         postStatus: postData.postStatus,
+        uid: postData.uid,
         images: {
           create: postData.images.map((url: string) => ({ url })),
         },

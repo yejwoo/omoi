@@ -317,7 +317,7 @@ export default function Post({ post }: { post: IPost }) {
       </div>
       <Modal isOpen={showModal} onClose={closeCommentModal}>
         <div className="flex flex-col md:flex-row overflow-hidden h-full md:h-auto">
-          <div className="w-full hidden md:w-1/2 md:block">
+          <div className="w-full md:w-1/2">
             <ImageCarousel images={post.images} />
           </div>
           <div className="w-full md:w-1/2 p-4 overflow-y-auto h-full md:h-auto no-scrollbar pb-12">
