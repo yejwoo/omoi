@@ -319,8 +319,11 @@ export default function Post({ post }: { post: IPost }) {
         <div className="flex flex-col md:flex-row overflow-hidden h-full md:h-auto">
           <div className="w-full md:w-1/2">
             <ImageCarousel images={post.images} />
+            <p className="border-b py-4 text-sm text-gray-700 md:hidden md:pb-4">
+              {formatText(post.content)}
+            </p>
           </div>
-          <div className="w-full md:w-1/2 p-4 overflow-y-auto h-full md:h-auto no-scrollbar pb-12">
+          <div className="w-full md:w-1/2 md:p-4 overflow-y-auto h-full md:h-auto no-scrollbar pb-12">
             <p className="border-b pb-4 text-sm text-gray-700 hidden md:block">
               {formatText(post.content)}
             </p>

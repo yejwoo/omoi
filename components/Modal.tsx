@@ -44,7 +44,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
         ref={modalRef}
         className="bg-white md:rounded-md p-4 w-full h-full md:h-5/6 max-w-5xl relative overflow-hidden"
       >
-        <div className="h-full overflow-y-auto">{children}</div>
+        <div className="h-full overflow-y-auto mt-12 md:mt-0">{children}</div>
       </div>
     </div>
   );
