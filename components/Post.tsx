@@ -47,6 +47,15 @@ export default function Post({ post }: { post: IPost }) {
     }
   }, [sessionData]);
 
+  const handleCopyLink = useCallback((uid: string) => {
+    const postUrl = `${window.location.origin}/p?uid=${uid}`;
+    navigator.clipboard.writeText(postUrl).then(() => {
+      alert("링크가 클립보드에 복사되었습니다.");
+    }).catch(err => {
+      console.error("링크 복사 실패:", err);
+    });
+  }, [post.uid]);
+
   // 좋아요 버튼 클릭시 추가 or 삭제
   const handleLike = useCallback(
     debounce(async () => {
@@ -228,7 +237,7 @@ export default function Post({ post }: { post: IPost }) {
                   </li>
                 </>
               )}
-              <li className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-b-md flex text-gray-500">
+              <li className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-b-md flex text-gray-500" onClick={()=>{handleCopyLink(post.uid)}}>
                 <span className="flex-grow text-sm">링크 복사</span>
                 <Image
                   src="/icons/link.svg"
