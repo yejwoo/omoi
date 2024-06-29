@@ -12,9 +12,15 @@ import { animated, useSpring } from "@react-spring/web";
 import Modal from "./Modal";
 import { fetchSession } from "@/lib/api";
 import { useQuery } from "react-query";
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
 
 export default function Post({ post }: { post: IPost }) {
   // 유저 정보
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const uid = searchParams.get("uid");
+
   const { data: sessionData } = useQuery("session", fetchSession);
   const [userId, setUserId] = useState(0);
   const {
@@ -47,13 +53,22 @@ export default function Post({ post }: { post: IPost }) {
     }
   }, [sessionData]);
 
-  const handleCopyLink = useCallback((uid: string) => {
-    const postUrl = `${window.location.origin}/p?uid=${uid}`;
-    navigator.clipboard.writeText(postUrl).then(() => {
-      alert("링크가 클립보드에 복사되었습니다.");
-    }).catch(err => {
-      console.error("링크 복사 실패:", err);
-    });
+  useEffect(() => {
+    if (uid && uid === post.uid) {
+      setShowModal(true);
+    }
+  }, [uid, post.uid]);
+
+  const handleCopyLink = useCallback(() => {
+    const postUrl = `${window.location.origin}/?uid=${post.uid}`;
+    navigator.clipboard
+      .writeText(postUrl)
+      .then(() => {
+        alert("링크가 클립보드에 복사되었습니다.");
+      })
+      .catch((err) => {
+        console.error("링크 복사 실패:", err);
+      });
   }, [post.uid]);
 
   // 좋아요 버튼 클릭시 추가 or 삭제
@@ -160,10 +175,12 @@ export default function Post({ post }: { post: IPost }) {
 
   // 모달 열기/닫기 함수 추가
   const openCommentModal = () => {
+    router.push(`${pathname}?uid=${post.uid}`);
     setShowModal(true);
   };
 
   const closeCommentModal = () => {
+    router.push(pathname);
     setShowModal(false);
   };
 
@@ -237,7 +254,12 @@ export default function Post({ post }: { post: IPost }) {
                   </li>
                 </>
               )}
-              <li className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-b-md flex text-gray-500" onClick={()=>{handleCopyLink(post.uid)}}>
+              <li
+                className="p-2 cursor-pointer w-full hover:bg-gray-100 hover:rounded-b-md flex text-gray-500"
+                onClick={() => {
+                  handleCopyLink();
+                }}
+              >
                 <span className="flex-grow text-sm">링크 복사</span>
                 <Image
                   src="/icons/link.svg"
@@ -336,7 +358,12 @@ export default function Post({ post }: { post: IPost }) {
             <p className="border-b pb-4 text-sm text-gray-700 hidden md:block">
               {formatText(post.content)}
             </p>
-            <Comment postId={post.id} userId={userId} sessionData={sessionData} profileImage={profileImage}/>
+            <Comment
+              postId={post.id}
+              userId={userId}
+              sessionData={sessionData}
+              profileImage={profileImage}
+            />
           </div>
         </div>
       </Modal>
