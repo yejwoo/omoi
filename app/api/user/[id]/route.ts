@@ -48,11 +48,29 @@ export async function POST(request: Request) {
       );
     }
 
+    // 기존 유저 데이터를 가져옴
+    const existingUser = await db.user.findUnique({
+      where: { id },
+      select: {
+        profile: true,
+      },
+    });
+
+    if (!existingUser) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // 프로필 이미지가 제공되지 않았으면 기존 이미지를 사용
+    const updatedProfile = profile || existingUser.profile;
+
     const data = await db.user.update({
-      where: { id},
+      where: { id },
       data: {
         username: String(username),
-        profile: String(profile),
+        profile: String(updatedProfile),
       },
     });
 

@@ -53,6 +53,7 @@ const Header = () => {
   const handleLogout = async () => {
     await logout();
     queryClient.invalidateQueries("session"); // 세션 쿼리 무효화
+    queryClient.removeQueries("userProfile");
     window.location.reload();
   };
 
@@ -148,7 +149,7 @@ const Header = () => {
                     <li className="text-gray-700 text-sm hover:bg-gray-100">
                       <Link
                         className="block px-4 py-2"
-                        href="/my-omoi"
+                        href={`/${username}`}
                         onClick={handleLinkClick}
                       >
                         내 피드
