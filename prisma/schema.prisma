@@ -20,6 +20,7 @@ model User {
   likes                Like[]
   profile              String?
   replyComments        ReplyComment[]
+  bio                  String?
   createdAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0)
   updatedAt DateTime  @default(dbgenerated("NOW()")) @db.Timestamp(0) @updatedAt
   deletedAt DateTime? 
