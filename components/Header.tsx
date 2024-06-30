@@ -72,7 +72,7 @@ const Header = () => {
                 <div className="relative w-[72px] h-[48px]">
                   <Image
                     src={logo}
-                    layout="fill"
+                    fill
                     objectFit="contain"
                     alt="omoi logo"
                     priority

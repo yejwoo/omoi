@@ -14,7 +14,7 @@ import { fetchSession } from "@/lib/api";
 import { useQuery } from "react-query";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 
-export default function Post({ post }: { post: IPost }) {
+export default function Post({ post, fetchPosts }: { post: IPost, fetchPosts: (page: number, initialLoad?: boolean) => void }) {
   // 유저 정보
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -43,7 +43,7 @@ export default function Post({ post }: { post: IPost }) {
   const [showPostModal, setShowPostModal] = useState(false);
   const [editingPostId, setEditingPostId] = useState<number>(0);
   const [openPostModalId, setOpenPostModalId] = useState<number>(0);
-
+  const postModalRefs = useRef<HTMLUListElement | null>(null);
   const postRefs = useRef<(HTMLUListElement | null)[]>([]);
 
   // 유저 아이디 세팅
@@ -65,6 +65,7 @@ export default function Post({ post }: { post: IPost }) {
       .writeText(postUrl)
       .then(() => {
         alert("링크가 클립보드에 복사되었습니다.");
+        setShowPostModal(false); // 모달 닫기
       })
       .catch((err) => {
         console.error("링크 복사 실패:", err);
@@ -147,7 +148,7 @@ export default function Post({ post }: { post: IPost }) {
   const handleDeletePost = async (postId: number) => {
     if (confirm("정말 삭제하시겠습니까?")) {
       try {
-        const response = await fetch(`/api/posts/${postId}`, {
+        const response = await fetch(`/api/posts?postId=${postId}`, {
           method: "DELETE",
           body: JSON.stringify({
             id: postId,
@@ -163,6 +164,8 @@ export default function Post({ post }: { post: IPost }) {
 
         const result = await response.json();
         console.log("포스트 삭제: ", result.id);
+        setShowPostModal(false); // 모달 닫기
+        fetchPosts(1, true); // 포스트 새로고침
       } catch (error) {
         console.error("Failed to delete post.", error);
       }
@@ -183,6 +186,22 @@ export default function Post({ post }: { post: IPost }) {
     router.push(pathname);
     setShowModal(false);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        postModalRefs.current &&
+        !postModalRefs.current.contains(event.target as Node)
+      ) {
+        setShowPostModal(false); // 모달 닫기
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <>
@@ -220,6 +239,7 @@ export default function Post({ post }: { post: IPost }) {
               />
             </button>
             <ul
+              ref={postModalRefs}
               className={`w-28 border border-gray-200 bg-white shadow-md rounded-md absolute z-10 right-0 ${
                 showPostModal ? "" : "hidden"
               }`}

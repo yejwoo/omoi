@@ -131,13 +131,13 @@ export default function Home() {
                 ref={lastElementRef}
                 key={index}
               >
-                <Post post={post} />
+                <Post post={post} fetchPosts={fetchPosts}/>
               </div>
             );
           } else {
             return (
               <div key={index}>
-                <Post post={post} />
+                <Post post={post} fetchPosts={fetchPosts}/>
               </div>
             );
           }

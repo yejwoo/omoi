@@ -48,10 +48,14 @@ export async function GET(req: NextRequest) {
         },
       });
 
-      const postsWithCommentCount = posts.map(post => {
-        const validComments = post.comments.filter(comment => comment.deletedAt === null);
+      const postsWithCommentCount = posts.map((post) => {
+        const validComments = post.comments.filter(
+          (comment) => comment.deletedAt === null
+        );
         const commentCount = validComments.reduce((count, comment) => {
-          const validReplies = comment.replies.filter(reply => reply.deletedAt === null);
+          const validReplies = comment.replies.filter(
+            (reply) => reply.deletedAt === null
+          );
           return count + 1 + validReplies.length;
         }, 0);
 
@@ -64,7 +68,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ posts: postsWithCommentCount });
     } catch (error) {
       console.error(`Failed to fetch posts for userId ${userId}:`, error);
-      return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+      return NextResponse.json(
+        { message: "Internal Server Error" },
+        { status: 500 }
+      );
     }
   } else {
     const skip = (page - 1) * limit;
@@ -97,10 +104,14 @@ export async function GET(req: NextRequest) {
         take: limit,
       });
 
-      const postsWithCommentCount = posts.map(post => {
-        const validComments = post.comments.filter(comment => comment.deletedAt === null);
+      const postsWithCommentCount = posts.map((post) => {
+        const validComments = post.comments.filter(
+          (comment) => comment.deletedAt === null
+        );
         const commentCount = validComments.reduce((count, comment) => {
-          const validReplies = comment.replies.filter(reply => reply.deletedAt === null);
+          const validReplies = comment.replies.filter(
+            (reply) => reply.deletedAt === null
+          );
           return count + 1 + validReplies.length;
         }, 0);
 
@@ -121,7 +132,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ posts: postsWithCommentCount, hasMore });
     } catch (error) {
       console.error("Failed to fetch public posts:", error);
-      return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+      return NextResponse.json(
+        { message: "Internal Server Error" },
+        { status: 500 }
+      );
     }
   }
 }
@@ -145,7 +159,10 @@ export async function POST(req: NextRequest) {
     const result = await postSchema.safeParseAsync(data);
 
     if (!result.success) {
-      return NextResponse.json({ success: false, errors: result.error.flatten() }, { status: 400 });
+      return NextResponse.json(
+        { success: false, errors: result.error.flatten() },
+        { status: 400 }
+      );
     }
 
     const postData: PostData = result.data;
@@ -166,24 +183,34 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, redirectUrl: "/" }, { status: 200 });
+    return NextResponse.json(
+      { success: true, redirectUrl: "/" },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Failed to save post to database: ", error);
-    return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
 
 export async function DELETE(req: NextRequest) {
   try {
-    const { postId } = await req.json();
+    const url = new URL(req.url);
+    const postId = url.searchParams.get("postId");
 
     if (!postId) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
     const post = await db.post.update({
       where: {
-        id: postId,
+        id: Number(postId),
       },
       data: {
         deletedAt: new Date(),
@@ -196,6 +223,9 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json(post, { status: 201 });
   } catch (error) {
     console.error("Error deleting post: ", error);
-    return NextResponse.json({ error: "Failed to delete post" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to delete post" },
+      { status: 500 }
+    );
   }
 }
