@@ -20,6 +20,7 @@ export async function GET(request: Request) {
         id: true,
         username: true,
         profile: true,
+        bio: true
       },
     });
 
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
     const id = parseInt(pathnameParts[pathnameParts.length - 1]);
     const username = formData.get("username");
     const profile = formData.get("profile");
+    const bio = formData.get("bio"); 
 
     if (!id) {
       return NextResponse.json(
@@ -53,6 +55,7 @@ export async function POST(request: Request) {
       where: { id },
       select: {
         profile: true,
+        bio: true,
       },
     });
 
@@ -63,14 +66,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // 프로필 이미지가 제공되지 않았으면 기존 이미지를 사용
     const updatedProfile = profile || existingUser.profile;
+    const updatedBio = bio || existingUser.bio;
 
     const data = await db.user.update({
       where: { id },
       data: {
         username: String(username),
         profile: String(updatedProfile),
+        bio: String(updatedBio),
       },
     });
 

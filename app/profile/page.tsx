@@ -1,13 +1,12 @@
+// profile
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { getSession } from "@/lib/session";
-import { defaultSession } from "@/lib/sessionSetting";
 import { useRouter } from "next/navigation";
+import { useQuery, useQueryClient } from "react-query";
+import { fetchSession } from "@/lib/api";
 import Button from "@/components/Button";
 import ProfileImageDropzone from "@/components/ProfileDropzone";
-import Input from "@/components/Input";
 import uploadFiles from "@/lib/UploadFiles";
 
 interface FileWithPreview extends File {
@@ -16,56 +15,49 @@ interface FileWithPreview extends File {
 }
 
 const MyOmoi = () => {
-  const { data: session } = useSession();
-  const [emailSession, setEmailSession] = useState(defaultSession);
-  const [nickname, setNickname] = useState(
-    session?.user?.name || emailSession.username
-  );
+  const queryClient = useQueryClient();
+  const { data: sessionData, isLoading: isSessionLoading } = useQuery("session", fetchSession, {
+    refetchOnWindowFocus: false,
+  });
+  const [nickname, setNickname] = useState<string>("");
   const [profileImage, setProfileImage] = useState<string>("");
   const [profilePreview, setProfilePreview] = useState<FileWithPreview | null>(null);
-  const [email, setEmail] = useState(
-    session?.user?.email || emailSession.email
-  );
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState<string>("");
+  const [bio, setBio] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchSession = async () => {
-      if (!emailSession.isLoggedIn) {
-        const session = await getSession();
-        setEmailSession(session);
-        setNickname(session.username);
-        setEmail(session.email);
-      }
-    };
-
-    fetchSession();
-  }, [emailSession.isLoggedIn]);
+    if (sessionData) {
+      setNickname(sessionData.username || "");
+      setEmail(sessionData.email || "");
+    }
+  }, [sessionData]);
 
   useEffect(() => {
-    if(emailSession.id) {
+    if (sessionData?.id) {
       const fetchUserProfile = async () => {
         try {
-          const response = await fetch(`/api/user/${emailSession.id}`, {
+          const response = await fetch(`/api/user/${sessionData.id}`, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
             },
           });
-  
+
           if (response.ok) {
             const data = await response.json();
-            console.log("user profile", data);
             setProfileImage(data.data.profile);
+            setBio(data.data.bio);
           }
         } catch (error) {
           console.error("Failed to fetch user profile", error);
         }
       };
-  
+
       fetchUserProfile();
     }
-  }, [emailSession.id]);
+  }, [sessionData?.id]);
 
   const fileToBlob = (file: FileWithPreview): Promise<Blob> => {
     return fetch(file.preview).then((res) => res.blob());
@@ -77,16 +69,10 @@ const MyOmoi = () => {
       const urls = await uploadFiles([blob], [file.name]);
       const url = urls[0];
       setProfilePreview({ ...file, url });
-      const hiddenInput = document.getElementById(
-        "hiddenProfileImage"
-      ) as HTMLInputElement;
-      hiddenInput.value = url;
+      setProfileImage(url);
     } else {
       setProfilePreview(null);
-      const hiddenInput = document.getElementById(
-        "hiddenProfileImage"
-      ) as HTMLInputElement;
-      hiddenInput.value = "";
+      setProfileImage("");
     }
   };
 
@@ -95,13 +81,13 @@ const MyOmoi = () => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget as HTMLFormElement);
     setIsLoading(true);
-    const response = await fetch(`/api/user/${emailSession.id}`, {
+    const response = await fetch(`/api/user/${sessionData?.id}`, {
       method: "POST",
       body: formData,
     });
     const result = await response.json();
     if (result.success) {
-      console.log(result);
+      queryClient.invalidateQueries("session");
       // router.reload();
     } else {
       console.error("Failed to update user profile:", result.errors);
@@ -109,44 +95,48 @@ const MyOmoi = () => {
     setIsLoading(false);
   };
 
+  if (isSessionLoading) return <div>Loading...</div>;
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 py-10 px-4">
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-semibold mb-4">내 정보</h1>
+        <h1 className="text-lg font-semibold mb-4">내 정보</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-gray-700">이메일</label>
+            <label className="block text-gray-700 text-sm">이메일</label>
             <input
               type="email"
               value={email}
               disabled
-              className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md"
+              className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm"
             />
           </div>
           <div>
-            <label className="block text-gray-700">닉네임</label>
+            <label className="block text-gray-700 text-sm">닉네임</label>
             <input
               type="text"
               name="username"
               defaultValue={nickname}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
             />
           </div>
           <div>
-            <label className="block text-gray-700 mb-4">프로필 이미지</label>
-            <ProfileImageDropzone onFileAdded={handleProfileImageChange} profile={profileImage}/>
-            <input type="hidden" id="hiddenProfileImage" name="profile" />
+            <label className="block text-gray-700 text-sm">소개글(최대 50자)</label>
+            <textarea
+              name="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 rounded-md text-sm"
+              style={{ border: "1px solid rgb(209 213 219)" }}
+              placeholder="소개글을 작성하세요."
+              maxLength={50}
+            />
           </div>
-          {/* {emailSession.id && (
-            <div className="hidden">
-              <Input
-                type="hidden"
-                name="id"
-                label="유저 아이디"
-                value={emailSession.id}
-              />
-            </div>
-          )} */}
+          <div>
+            <label className="block text-gray-700 mb-4 text-sm">프로필 이미지</label>
+            <ProfileImageDropzone onFileAdded={handleProfileImageChange} profile={profileImage} />
+            <input type="hidden" id="hiddenProfileImage" name="profile" value={profileImage} />
+          </div>
           <Button
             content={isLoading ? "업데이트 중..." : "업데이트"}
             type="primary"

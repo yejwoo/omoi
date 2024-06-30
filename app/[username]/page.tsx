@@ -101,7 +101,7 @@ const Home = () => {
           <div>
             <h1 className="font-semibold">{userName}</h1>
             {/* 소개글 */}
-            <p className="text-sm text-gray-600">Bio goes here...</p>
+            <p className="text-sm text-gray-600">{userProfile?.bio}</p>
           </div>
         </div>
 
