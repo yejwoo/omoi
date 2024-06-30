@@ -20,16 +20,39 @@ const parseQueryParams = (req: NextRequest) => {
   const url = new URL(req.url);
   return {
     userId: url.searchParams.get("userId"),
+    username: url.searchParams.get("username"),
     page: parseInt(url.searchParams.get("page") || "1", 10),
     limit: parseInt(url.searchParams.get("limit") || "30", 10),
   };
 };
 
 export async function GET(req: NextRequest) {
-  const { userId, page, limit } = parseQueryParams(req);
+  const { userId, username, page, limit } = parseQueryParams(req);
+  console.log("username", username);
 
-  if (userId) {
+  if (userId || username) {
     try {
+      const user = username
+        ? await db.user.findUnique({
+            where: { username },
+            select: {
+              id: true,
+              username: true,
+              profile: true,
+              bio: true,
+            },
+          })
+        : null;
+
+      const user_id = userId ? Number(userId) : user?.id;
+
+      if (!user_id) {
+        return NextResponse.json(
+          { message: "User not found" },
+          { status: 404 }
+        );
+      }
+
       const posts = await db.post.findMany({
         include: {
           images: true,
@@ -41,7 +64,7 @@ export async function GET(req: NextRequest) {
           },
         },
         where: {
-          userId: Number(userId),
+          userId: user_id,
         },
         orderBy: {
           createdAt: "desc",
@@ -65,9 +88,13 @@ export async function GET(req: NextRequest) {
         };
       });
 
-      return NextResponse.json({ posts: postsWithCommentCount });
+      // return NextResponse.json({ posts: postsWithCommentCount });
+      return NextResponse.json({ user, posts: postsWithCommentCount }); // 유저 데이터 추가
     } catch (error) {
-      console.error(`Failed to fetch posts for userId ${userId}:`, error);
+      console.error(
+        `Failed to fetch posts for userId ${userId || username}:`,
+        error
+      );
       return NextResponse.json(
         { message: "Internal Server Error" },
         { status: 500 }

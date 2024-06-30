@@ -2,25 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useParams } from "next/navigation";
 import IPost from "@/app/interface/IPost";
 import { tags1, tags2 } from "@/app/data/tags";
-import useUserProfile from "../hooks/useUserProfile";
-import { fetchSession } from "@/lib/api";
-import { useQuery } from "react-query";
 
-const Home = () => {
+const UserPage = () => {
   const [posts, setPosts] = useState<IPost[]>([]);
   const [selectedPost, setSelectedPost] = useState<IPost | null>(null);
-  const [userId, setUserId] = useState<number | null>(null);
   const [userName, setUserName] = useState<string>("");
+  const [userProfile, setUserProfile] = useState<any>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setModalOpen] = useState<Boolean>(false);
-  const { data: sessionData } = useQuery("session", fetchSession);
-  const {
-    data: userProfile,
-    isLoading: isProfileLoading,
-    error: profileError,
-  } = useUserProfile(sessionData?.id || 0);
+  const { username } = useParams();
   const profileImage = userProfile?.profile;
 
   const getTag1Name = (value: string) => {
@@ -35,6 +28,29 @@ const Home = () => {
     });
   };
 
+  useEffect(() => {
+    if (username) {
+      const fetchUserProfile = async () => {
+        try {
+          const response = await fetch(`/api/posts?username=${username}`);
+          if (response.ok) {
+            const data = await response.json();
+            console.log(data);
+            setUserProfile(data.user);
+            setUserName(data.user.username);
+            setPosts(data.posts);
+          } else {
+            console.error("Failed to fetch user profile.");
+          }
+        } catch (error) {
+          console.error("Failed to fetch user profile.", error);
+        }
+      };
+
+      fetchUserProfile();
+    }
+  }, [username]);
+
   // 모달 바깥 클릭시 안 보이기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -48,34 +64,6 @@ const Home = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [modalRef]);
-
-  useEffect(() => {
-    if (sessionData) {
-      setUserId(sessionData.id);
-      setUserName(sessionData.username);
-    }
-  }, [sessionData]);
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        // userId가 있을 때만 fetchPosts 실행
-        if (userId) {
-          const response = await fetch(`/api/posts?userId=${userId}`);
-          if (response.ok) {
-            const data = await response.json();
-            console.log(data);
-            setPosts(data.posts);
-          } else {
-            console.error("Failed to fetch My Posts.");
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch My Posts.", error);
-      }
-    };
-    fetchPosts();
-  }, [userId]);
 
   const handleCloseModal = () => {
     setSelectedPost(null);
@@ -207,4 +195,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default UserPage;

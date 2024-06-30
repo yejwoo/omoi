@@ -13,8 +13,15 @@ import Modal from "./Modal";
 import { fetchSession } from "@/lib/api";
 import { useQuery } from "react-query";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 
-export default function Post({ post, fetchPosts }: { post: IPost, fetchPosts: (page: number, initialLoad?: boolean) => void }) {
+export default function Post({
+  post,
+  fetchPosts,
+}: {
+  post: IPost;
+  fetchPosts: (page: number, initialLoad?: boolean) => void;
+}) {
   // 유저 정보
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -210,17 +217,19 @@ export default function Post({ post, fetchPosts }: { post: IPost, fetchPosts: (p
           <div className="flex gap-2 items-center">
             {post.user.profile ? (
               <div className="relative w-10 h-10 rounded-full flex-shrink-0">
-                <Image
-                  src={post.user.profile}
-                  fill
-                  className="object-cover rounded-full"
-                  alt="profile"
-                />
+                <Link href={`/${post.user.username}`}>
+                  <Image
+                    src={post.user.profile}
+                    fill
+                    className="object-cover rounded-full"
+                    alt="profile"
+                  />
+                </Link>
               </div>
             ) : (
               <div className="inline-block w-10 h-10 bg-gray-300 rounded-full"></div>
             )}
-            <span className="font-semibold">{post.user.username}</span>
+            <Link href={`/${post.user.username}`} className="font-semibold">{post.user.username}</Link>
             <span className="text-sm text-gray-500">
               {formatDate(post.date)}
             </span>
